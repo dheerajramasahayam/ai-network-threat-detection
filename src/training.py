@@ -4,6 +4,14 @@ training.py
 Main training script for the AI Network Intrusion Detection System.
 Trains RandomForest and XGBoost models, saves artifacts, and generates
 performance reports (metrics + plots).
+
+Usage
+-----
+    # Default — CICIDS2017 only
+    python3 src/training.py
+
+    # Multi-dataset (cross-dataset generalization)
+    python3 src/training.py --dataset dataset/combined.csv --label-col label
 """
 
 import os
@@ -36,8 +44,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 RESULTS_DIR = os.path.join(BASE_DIR, 'results')
-MODELS_DIR = os.path.join(BASE_DIR, 'models')
-DATASET_PATH = os.path.join(BASE_DIR, 'dataset', 'cicids2017.csv')
+MODELS_DIR  = os.path.join(BASE_DIR, 'models')
 
 
 def plot_confusion_matrix(y_true, y_pred, model_name: str, save_path: str):
@@ -97,32 +104,57 @@ def write_accuracy_report(all_metrics: dict, save_path: str):
         )
     lines += [
         "\n## Notes\n\n",
-        "- Dataset: CICIDS2017 (Canadian Institute for Cybersecurity)\n",
+        f"- Dataset: {os.path.basename(save_path).replace('accuracy_report_','').replace('.md','')}\n",
         "- Train/Test split: 80/20 stratified\n",
         "- Class balancing: Random undersampling of majority class\n",
         "- Feature scaling: StandardScaler (zero-mean, unit-variance)\n",
-        "- Attack traffic includes: DDoS, PortScan, Bot, Infiltration, Web Attacks, Brute Force\n",
     ]
     with open(save_path, 'w') as f:
         f.writelines(lines)
     logger.info(f"Accuracy report written → {save_path}")
 
 
-def train_and_evaluate():
-    os.makedirs(RESULTS_DIR, exist_ok=True)
-    os.makedirs(MODELS_DIR, exist_ok=True)
+def train_and_evaluate(dataset_path: str, label_col: str = "Label", tag: str = ""):
+    """
+    Full train-evaluate pipeline.
+
+    Parameters
+    ----------
+    dataset_path : path to CSV (cicids2017.csv or combined.csv)
+    label_col    : name of the target column in the CSV
+    tag          : short string appended to artifact filenames
+    """
+    tag = tag or os.path.splitext(os.path.basename(dataset_path))[0]
+    results_dir = RESULTS_DIR
+    models_dir  = MODELS_DIR
+    os.makedirs(results_dir, exist_ok=True)
+    os.makedirs(models_dir, exist_ok=True)
 
     # ── Preprocessing ────────────────────────────────────────────────
     logger.info("=" * 60)
-    logger.info("STEP 1: Preprocessing dataset")
+    logger.info(f"STEP 1: Preprocessing  [{tag}]")
     logger.info("=" * 60)
-    data = preprocess(DATASET_PATH, balance_strategy='undersample')
+
+    # Handle combined.csv (canonical lowercase column names)
+    import pandas as pd
+    sample = pd.read_csv(dataset_path, nrows=2)
+    actual_label = next(
+        (c for c in sample.columns if c.lower() == label_col.lower()),
+        label_col
+    )
+
+    data = preprocess(
+        dataset_path,
+        balance_strategy='undersample',
+        label_col_override=actual_label if actual_label != 'Label' else None,
+    )
 
     X_train = data['X_train']
     X_test  = data['X_test']
     y_train = data['y_train']
     y_test  = data['y_test']
     feature_names = data['feature_names']
+    logger.info(f"X_train: {X_train.shape}  X_test: {X_test.shape}")
 
     # ── Train models ─────────────────────────────────────────────────
     config = ModelConfig()
@@ -147,14 +179,13 @@ def train_and_evaluate():
         y_prob = model.predict_proba(X_test)
         roc_data[model_name] = {'y_test': y_test, 'y_prob': y_prob}
 
-        # Confusion matrix per model
-        cm_path = os.path.join(RESULTS_DIR, f"confusion_matrix_{model_name}.png")
-        plot_confusion_matrix(y_test, y_pred, model_name.replace('_', ' ').title(), cm_path)
+        cm_path = os.path.join(results_dir, f"confusion_matrix_{model_name}_{tag}.png")
+        plot_confusion_matrix(y_test, y_pred, f"{model_name.replace('_',' ').title()} [{tag}]", cm_path)
 
-        # Save model artifact
-        model.save(os.path.join(MODELS_DIR, f"{model_name}.joblib"))
+        model_path = os.path.join(models_dir, f"{model_name}_{tag}.joblib")
+        model.save(model_path)
+        logger.info(f"Model saved → {model_path}")
 
-        # Feature importance
         fi = model.feature_importance()
         if fi:
             top10 = list(fi.items())[:10]
@@ -162,20 +193,20 @@ def train_and_evaluate():
             for feat, importance in top10:
                 logger.info(f"  {feat:<40s} {importance:.4f}")
 
-    # Also save the first confusion matrix as the canonical one (spec requirement)
-    first_cm = os.path.join(RESULTS_DIR, "confusion_matrix_random_forest.png")
-    canonical = os.path.join(RESULTS_DIR, "confusion_matrix.png")
-    if os.path.exists(first_cm) and not os.path.exists(canonical):
+    # Canonical confusion matrix (spec requirement)
+    rf_cm = os.path.join(results_dir, f"confusion_matrix_random_forest_{tag}.png")
+    canonical = os.path.join(results_dir, "confusion_matrix.png")
+    if os.path.exists(rf_cm):
         import shutil
-        shutil.copy(first_cm, canonical)
+        shutil.copy(rf_cm, canonical)
 
-    # ── Plots ────────────────────────────────────────────────────────
-    plot_roc_curves(roc_data, os.path.join(RESULTS_DIR, 'roc_curve.png'))
-    write_accuracy_report(all_metrics, os.path.join(RESULTS_DIR, 'accuracy_report.md'))
+    # ── Plots & reports ──────────────────────────────────────────────
+    plot_roc_curves(roc_data, os.path.join(results_dir, f"roc_curve_{tag}.png"))
+    write_accuracy_report(all_metrics, os.path.join(results_dir, f"accuracy_report_{tag}.md"))
 
     # ── Summary ──────────────────────────────────────────────────────
     logger.info("=" * 60)
-    logger.info("TRAINING COMPLETE — RESULTS SUMMARY")
+    logger.info(f"TRAINING COMPLETE [{tag}]")
     logger.info("=" * 60)
     for name, m in all_metrics.items():
         logger.info(
@@ -185,7 +216,24 @@ def train_and_evaluate():
             f"f1={m['f1_score']*100:.2f}%  "
             f"auc={m['roc_auc']:.4f}"
         )
+    return all_metrics
 
 
 if __name__ == '__main__':
-    train_and_evaluate()
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '--dataset',
+        default=os.path.join(BASE_DIR, 'dataset', 'cicids2017.csv'),
+        help='Path to training CSV (default: dataset/cicids2017.csv)',
+    )
+    parser.add_argument(
+        '--label-col', default='Label',
+        help='Name of the label column in the CSV (default: Label)',
+    )
+    parser.add_argument(
+        '--tag', default='',
+        help='Short tag appended to artifact filenames (auto-detected from filename)',
+    )
+    args = parser.parse_args()
+    train_and_evaluate(args.dataset, label_col=args.label_col, tag=args.tag)

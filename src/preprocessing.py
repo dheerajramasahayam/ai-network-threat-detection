@@ -111,27 +111,56 @@ def audit_labels(df: pd.DataFrame, contamination: float = 0.01) -> dict:
 
 def encode_labels(df: pd.DataFrame) -> tuple[pd.DataFrame, LabelEncoder]:
     """
-    Encode the Label column to binary (0 = BENIGN, 1 = ATTACK)
-    and return the dataframe with a numeric label column.
+    Encode the Label column to binary (0 = BENIGN, 1 = ATTACK).
+    Handles both string labels ('BENIGN'/'ATTACK') and pre-encoded numeric labels (0/1).
     """
     logger.info("Encoding labels...")
     le = LabelEncoder()
     df = df.copy()
-    df['Label_encoded'] = (df[LABEL_COLUMN].str.strip().str.upper() != 'BENIGN').astype(int)
+    col = df[LABEL_COLUMN]
+
+    if pd.api.types.is_numeric_dtype(col):
+        # Already numeric (e.g. combined.csv) — just ensure 0/1
+        df['Label_encoded'] = (col.fillna(0).astype(int) != 0).astype(int)
+    else:
+        # String labels — compare to 'BENIGN'
+        df['Label_encoded'] = (col.astype(str).str.strip().str.upper() != 'BENIGN').astype(int)
+
     label_distribution = df['Label_encoded'].value_counts()
     logger.info(f"Label distribution:\n{label_distribution}")
     return df, le
 
 
 def select_features(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
-    """Select available feature columns and the encoded label."""
-    available = [col for col in FEATURE_COLUMNS if col in df.columns]
-    missing = set(FEATURE_COLUMNS) - set(available)
+    """
+    Select available feature columns and the encoded label.
+
+    Handles three naming conventions:
+      - CICIDS2017 mixed-case with spaces: 'Flow Duration'
+      - combined.csv canonical lowercase with underscores: 'flow_duration'
+      - Direct match: 'act_data_pkt_fwd'
+    """
+    def _normalize(s: str) -> str:
+        return s.lower().replace(' ', '_').replace('/', '_').replace('-', '_')
+
+    # Build normalize(col) → actual_col_name map for the DataFrame
+    col_norm_map = {_normalize(c): c for c in df.columns}
+
+    selected = []
+    for feat in FEATURE_COLUMNS:
+        if feat in df.columns:
+            selected.append(feat)
+        else:
+            norm = _normalize(feat)
+            if norm in col_norm_map:
+                selected.append(col_norm_map[norm])
+
+    missing = len(FEATURE_COLUMNS) - len(selected)
     if missing:
-        logger.warning(f"Missing {len(missing)} expected feature columns — they will be skipped.")
-    X = df[available]
+        logger.warning(f"Missing {missing} expected feature columns — they will be skipped.")
+    X = df[selected]
     y = df['Label_encoded']
-    logger.info(f"Selected {len(available)} features.")
+    logger.info(f"Selected {len(selected)} features.")
     return X, y
 
 
@@ -200,23 +229,37 @@ def preprocess(
     balance_strategy: str = 'smote',
     run_label_audit: bool = False,
     drop_flagged: bool = False,
+    label_col_override: str | None = None,
 ) -> dict:
     """
     Full preprocessing pipeline.
 
     Parameters
     ----------
-    dataset_path      : path to cicids2017.csv
+    dataset_path      : path to cicids2017.csv or combined.csv
     test_size         : fraction for test split (default 0.2)
     balance           : whether to apply class balancing
     balance_strategy  : 'smote' | 'undersample' | 'oversample'
     run_label_audit   : run IsolationForest label quality check
     drop_flagged      : remove audit-flagged rows before training
+    label_col_override: use a different column as the label (e.g. 'label'
+                        for combined.csv instead of 'Label')
 
     Returns a dict with keys:
         X_train, X_test, y_train, y_test, scaler, feature_names, audit_result
     """
+    global LABEL_COLUMN
+    orig_label_col = LABEL_COLUMN
+    if label_col_override:
+        LABEL_COLUMN = label_col_override
+
     df = load_dataset(dataset_path)
+
+    # Drop non-feature metadata columns that combined.csv may include
+    for drop_col in ['_source']:
+        if drop_col in df.columns:
+            df = df.drop(columns=[drop_col])
+
     df = clean_data(df)
     df, le = encode_labels(df)
 
@@ -239,6 +282,9 @@ def preprocess(
 
     if balance:
         X_train_s, y_train = balance_classes(X_train_s, y_train, strategy=balance_strategy)
+
+    # Restore global
+    LABEL_COLUMN = orig_label_col
 
     return {
         'X_train':       X_train_s,
