@@ -17,31 +17,87 @@ import os
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# Features used from CICIDS2017 (subset of most informative columns)
+# Canonical 41 feature names (lowercase, underscore-separated).
+# Used for both CICIDS2017 and the multi-dataset combined.csv.
 FEATURE_COLUMNS = [
-    'Flow Duration', 'Total Fwd Packets', 'Total Backward Packets',
-    'Total Length of Fwd Packets', 'Total Length of Bwd Packets',
-    'Fwd Packet Length Max', 'Fwd Packet Length Min', 'Fwd Packet Length Mean',
-    'Bwd Packet Length Max', 'Bwd Packet Length Min', 'Bwd Packet Length Mean',
-    'Flow Bytes/s', 'Flow Packets/s', 'Flow IAT Mean', 'Flow IAT Std',
-    'Fwd IAT Total', 'Bwd IAT Total', 'Fwd PSH Flags', 'Bwd PSH Flags',
-    'Fwd Header Length', 'Bwd Header Length', 'Fwd Packets/s', 'Bwd Packets/s',
-    'Min Packet Length', 'Max Packet Length', 'Packet Length Mean',
-    'Packet Length Std', 'Packet Length Variance', 'FIN Flag Count',
-    'SYN Flag Count', 'RST Flag Count', 'PSH Flag Count', 'ACK Flag Count',
-    'URG Flag Count', 'Average Packet Size', 'Avg Fwd Segment Size',
-    'Avg Bwd Segment Size', 'Init_Win_bytes_forward', 'Init_Win_bytes_backward',
-    'act_data_pkt_fwd', 'min_seg_size_forward',
+    'flow_duration', 'total_fwd_packets', 'total_bwd_packets',
+    'total_len_fwd_packets', 'total_len_bwd_packets',
+    'fwd_packet_len_max', 'fwd_packet_len_min', 'fwd_packet_len_mean',
+    'bwd_packet_len_max', 'bwd_packet_len_min', 'bwd_packet_len_mean',
+    'flow_bytes_s', 'flow_packets_s', 'flow_iat_mean', 'flow_iat_std',
+    'fwd_iat_total', 'bwd_iat_total', 'fwd_psh_flags', 'bwd_psh_flags',
+    'fwd_header_len', 'bwd_header_len', 'fwd_packets_s', 'bwd_packets_s',
+    'min_packet_len', 'max_packet_len', 'packet_len_mean',
+    'packet_len_std', 'packet_len_variance', 'fin_flag_cnt',
+    'syn_flag_cnt', 'rst_flag_cnt', 'psh_flag_cnt', 'ack_flag_cnt',
+    'urg_flag_cnt', 'avg_packet_size', 'avg_fwd_seg_size',
+    'avg_bwd_seg_size', 'init_win_bytes_fwd', 'init_win_bytes_bwd',
+    'act_data_pkt_fwd', 'min_seg_size_fwd',
 ]
 LABEL_COLUMN = 'Label'
 
+# CICIDS2017 original mixed-case column names → canonical names
+_CICIDS_COL_MAP = {
+    'Flow Duration':                'flow_duration',
+    'Total Fwd Packets':            'total_fwd_packets',
+    'Total Backward Packets':       'total_bwd_packets',
+    'Total Length of Fwd Packets':  'total_len_fwd_packets',
+    'Total Length of Bwd Packets':  'total_len_bwd_packets',
+    'Fwd Packet Length Max':        'fwd_packet_len_max',
+    'Fwd Packet Length Min':        'fwd_packet_len_min',
+    'Fwd Packet Length Mean':       'fwd_packet_len_mean',
+    'Bwd Packet Length Max':        'bwd_packet_len_max',
+    'Bwd Packet Length Min':        'bwd_packet_len_min',
+    'Bwd Packet Length Mean':       'bwd_packet_len_mean',
+    'Flow Bytes/s':                 'flow_bytes_s',
+    'Flow Packets/s':               'flow_packets_s',
+    'Flow IAT Mean':                'flow_iat_mean',
+    'Flow IAT Std':                 'flow_iat_std',
+    'Fwd IAT Total':                'fwd_iat_total',
+    'Bwd IAT Total':                'bwd_iat_total',
+    'Fwd PSH Flags':                'fwd_psh_flags',
+    'Bwd PSH Flags':                'bwd_psh_flags',
+    'Fwd Header Length':            'fwd_header_len',
+    'Bwd Header Length':            'bwd_header_len',
+    'Fwd Packets/s':                'fwd_packets_s',
+    'Bwd Packets/s':                'bwd_packets_s',
+    'Min Packet Length':            'min_packet_len',
+    'Max Packet Length':            'max_packet_len',
+    'Packet Length Mean':           'packet_len_mean',
+    'Packet Length Std':            'packet_len_std',
+    'Packet Length Variance':       'packet_len_variance',
+    'FIN Flag Count':               'fin_flag_cnt',
+    'SYN Flag Count':               'syn_flag_cnt',
+    'RST Flag Count':               'rst_flag_cnt',
+    'PSH Flag Count':               'psh_flag_cnt',
+    'ACK Flag Count':               'ack_flag_cnt',
+    'URG Flag Count':               'urg_flag_cnt',
+    'Average Packet Size':          'avg_packet_size',
+    'Avg Fwd Segment Size':         'avg_fwd_seg_size',
+    'Avg Bwd Segment Size':         'avg_bwd_seg_size',
+    'Init_Win_bytes_forward':       'init_win_bytes_fwd',
+    'Init_Win_bytes_backward':      'init_win_bytes_bwd',
+    'act_data_pkt_fwd':             'act_data_pkt_fwd',
+    'min_seg_size_forward':         'min_seg_size_fwd',
+    'Label':                        'Label',
+}
+
 
 def load_dataset(path: str) -> pd.DataFrame:
-    """Load the CICIDS2017 CSV dataset."""
+    """
+    Load a NIDS CSV dataset (CICIDS2017 or combined.csv).
+    Automatically renames CICIDS2017 mixed-case columns to the canonical
+    lowercase-underscore schema so both file formats share one pipeline.
+    """
     logger.info(f"Loading dataset from {path}")
     df = pd.read_csv(path, low_memory=False)
     # Strip whitespace from column names (CICIDS2017 has trailing spaces)
     df.columns = df.columns.str.strip()
+    # Rename CICIDS2017-style columns → canonical names (no-op for combined.csv)
+    rename_map = {k: v for k, v in _CICIDS_COL_MAP.items() if k in df.columns}
+    if rename_map:
+        df = df.rename(columns=rename_map)
+        logger.info(f"Normalized {len(rename_map)} CICIDS2017 column names to canonical form.")
     logger.info(f"Loaded {len(df):,} rows, {len(df.columns)} columns")
     return df
 
