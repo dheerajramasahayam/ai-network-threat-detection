@@ -1,0 +1,69 @@
+cff-version: 1.2.0
+message: "If you use this software or dataset pipeline in your research, please cite it as below."
+type: software
+title: "AI-Powered Network Intrusion Detection System (AI-NIDS)"
+abstract: >
+  An open-source, end-to-end machine learning pipeline for network intrusion detection.
+  Trained on a merged corpus of 3.87M flows from four public datasets (CICIDS2017,
+  UNSW-NB15, NSL-KDD, NF-ToN-IoT). Achieves 99.86% accuracy and AUC=1.0000 with
+  41 canonical flow features. Includes SHAP-based explainability, unsupervised zero-day
+  detection (IsolationForest + OCSVM + LOF), adversarial robustness testing (4 attack
+  methods), cross-dataset generalization benchmark, per-attack-class detection report,
+  and inference latency benchmarks. Deployed via FastAPI REST API.
+authors:
+  - family-names: "Ramasahayam"
+    given-names: "Dheeraj"
+    orcid: ""
+repository-code: "https://github.com/dheerajramasahayam/ai-network-threat-detection"
+url: "https://github.com/dheerajramasahayam/ai-network-threat-detection"
+license: MIT
+version: "2.0.0"
+date-released: "2025-03-13"
+keywords:
+  - network intrusion detection
+  - machine learning
+  - cybersecurity
+  - NIDS
+  - IDS
+  - XGBoost
+  - Random Forest
+  - SHAP
+  - explainable AI
+  - zero-day detection
+  - adversarial robustness
+  - CICIDS2017
+  - UNSW-NB15
+  - NSL-KDD
+  - NF-ToN-IoT
+references:
+  - type: dataset
+    title: "CICIDS2017 Dataset"
+    authors:
+      - family-names: "Sharafaldin"
+        given-names: "Iman"
+      - family-names: "Habibi Lashkari"
+        given-names: "Arash"
+      - family-names: "Ghorbani"
+        given-names: "Ali A."
+    year: 2018
+    url: "https://www.unb.ca/cic/datasets/ids-2017.html"
+  - type: dataset
+    title: "UNSW-NB15 Dataset"
+    authors:
+      - family-names: "Moustafa"
+        given-names: "Nour"
+      - family-names: "Slay"
+        given-names: "Jill"
+    year: 2015
+  - type: dataset
+    title: "NSL-KDD Dataset"
+    authors:
+      - family-names: "Tavallaee"
+        given-names: "Mahbod"
+    year: 2009
+  - type: dataset
+    title: "NF-ToN-IoT v2"
+    authors:
+      - family-names: "Sarhan"
+        given-names: "Mohanad"
+    year: 2021
