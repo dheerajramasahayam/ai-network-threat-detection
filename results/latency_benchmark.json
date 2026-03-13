@@ -1,0 +1,190 @@
+{
+  "random_forest": [
+    {
+      "batch_size": 1,
+      "mean_ms": 13.498,
+      "p50_ms": 13.432,
+      "p95_ms": 13.819,
+      "p99_ms": 25.651,
+      "ms_per_flow": 13.4978,
+      "flows_per_sec": 74.0
+    },
+    {
+      "batch_size": 10,
+      "mean_ms": 13.01,
+      "p50_ms": 13.387,
+      "p95_ms": 13.561,
+      "p99_ms": 13.759,
+      "ms_per_flow": 1.301,
+      "flows_per_sec": 769.0
+    },
+    {
+      "batch_size": 100,
+      "mean_ms": 13.099,
+      "p50_ms": 13.483,
+      "p95_ms": 13.671,
+      "p99_ms": 13.691,
+      "ms_per_flow": 0.131,
+      "flows_per_sec": 7634.0
+    },
+    {
+      "batch_size": 1000,
+      "mean_ms": 21.268,
+      "p50_ms": 24.284,
+      "p95_ms": 26.357,
+      "p99_ms": 34.43,
+      "ms_per_flow": 0.0213,
+      "flows_per_sec": 47019.0
+    },
+    {
+      "batch_size": 10000,
+      "mean_ms": 36.056,
+      "p50_ms": 37.205,
+      "p95_ms": 38.928,
+      "p99_ms": 39.226,
+      "ms_per_flow": 0.0036,
+      "flows_per_sec": 277346.0
+    }
+  ],
+  "random_forest_combined": [
+    {
+      "batch_size": 1,
+      "mean_ms": 12.926,
+      "p50_ms": 13.419,
+      "p95_ms": 13.675,
+      "p99_ms": 13.781,
+      "ms_per_flow": 12.9264,
+      "flows_per_sec": 77.0
+    },
+    {
+      "batch_size": 10,
+      "mean_ms": 13.249,
+      "p50_ms": 13.418,
+      "p95_ms": 13.893,
+      "p99_ms": 20.626,
+      "ms_per_flow": 1.3249,
+      "flows_per_sec": 755.0
+    },
+    {
+      "batch_size": 100,
+      "mean_ms": 14.219,
+      "p50_ms": 13.49,
+      "p95_ms": 24.926,
+      "p99_ms": 27.686,
+      "ms_per_flow": 0.1422,
+      "flows_per_sec": 7033.0
+    },
+    {
+      "batch_size": 1000,
+      "mean_ms": 21.818,
+      "p50_ms": 24.76,
+      "p95_ms": 26.217,
+      "p99_ms": 36.209,
+      "ms_per_flow": 0.0218,
+      "flows_per_sec": 45833.0
+    },
+    {
+      "batch_size": 10000,
+      "mean_ms": 37.91,
+      "p50_ms": 37.793,
+      "p95_ms": 39.613,
+      "p99_ms": 45.051,
+      "ms_per_flow": 0.0038,
+      "flows_per_sec": 263782.0
+    }
+  ],
+  "xgboost": [
+    {
+      "batch_size": 1,
+      "mean_ms": 0.241,
+      "p50_ms": 0.23,
+      "p95_ms": 0.33,
+      "p99_ms": 0.36,
+      "ms_per_flow": 0.241,
+      "flows_per_sec": 4149.0
+    },
+    {
+      "batch_size": 10,
+      "mean_ms": 0.279,
+      "p50_ms": 0.268,
+      "p95_ms": 0.384,
+      "p99_ms": 0.536,
+      "ms_per_flow": 0.0279,
+      "flows_per_sec": 35848.0
+    },
+    {
+      "batch_size": 100,
+      "mean_ms": 0.409,
+      "p50_ms": 0.383,
+      "p95_ms": 0.592,
+      "p99_ms": 0.744,
+      "ms_per_flow": 0.0041,
+      "flows_per_sec": 244795.0
+    },
+    {
+      "batch_size": 1000,
+      "mean_ms": 1.091,
+      "p50_ms": 0.984,
+      "p95_ms": 1.797,
+      "p99_ms": 2.177,
+      "ms_per_flow": 0.0011,
+      "flows_per_sec": 916279.0
+    },
+    {
+      "batch_size": 10000,
+      "mean_ms": 7.911,
+      "p50_ms": 7.133,
+      "p95_ms": 12.73,
+      "p99_ms": 22.78,
+      "ms_per_flow": 0.0008,
+      "flows_per_sec": 1264131.0
+    }
+  ],
+  "xgboost_combined": [
+    {
+      "batch_size": 1,
+      "mean_ms": 0.264,
+      "p50_ms": 0.249,
+      "p95_ms": 0.39,
+      "p99_ms": 0.502,
+      "ms_per_flow": 0.2643,
+      "flows_per_sec": 3784.0
+    },
+    {
+      "batch_size": 10,
+      "mean_ms": 0.301,
+      "p50_ms": 0.285,
+      "p95_ms": 0.393,
+      "p99_ms": 0.482,
+      "ms_per_flow": 0.0301,
+      "flows_per_sec": 33259.0
+    },
+    {
+      "batch_size": 100,
+      "mean_ms": 0.411,
+      "p50_ms": 0.391,
+      "p95_ms": 0.573,
+      "p99_ms": 0.616,
+      "ms_per_flow": 0.0041,
+      "flows_per_sec": 243105.0
+    },
+    {
+      "batch_size": 1000,
+      "mean_ms": 1.135,
+      "p50_ms": 1.036,
+      "p95_ms": 1.551,
+      "p99_ms": 1.874,
+      "ms_per_flow": 0.0011,
+      "flows_per_sec": 880733.0
+    },
+    {
+      "batch_size": 10000,
+      "mean_ms": 7.724,
+      "p50_ms": 7.606,
+      "p95_ms": 9.069,
+      "p99_ms": 9.486,
+      "ms_per_flow": 0.0008,
+      "flows_per_sec": 1294698.0
+    }
+  ]
+}
