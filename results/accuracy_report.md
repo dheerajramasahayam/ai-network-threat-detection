@@ -1,13 +1,12 @@
 # Accuracy Report — AI Network Intrusion Detection System
-
-Generated: 2024-03-12 23:48:31
+Generated: 2026-03-13 00:29:52
 
 ## Summary
 
 | Model | Accuracy | Precision | Recall | F1 Score | ROC-AUC |
 |---|---|---|---|---|---|
-| random_forest | 95.82% | 92.14% | 93.76% | 92.94% | 0.9842 |
-| xgboost | 97.13% | 95.61% | 94.22% | 94.91% | 0.9914 |
+| random_forest | 99.73% | 98.71% | 99.91% | 99.31% | 0.9999 |
+| xgboost | 99.74% | 98.76% | 99.92% | 99.34% | 0.9999 |
 
 ## Notes
 

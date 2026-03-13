@@ -164,7 +164,7 @@ def balance_classes(X: np.ndarray, y, strategy: str = 'smote') -> tuple[np.ndarr
     if strategy == 'smote':
         try:
             from imblearn.over_sampling import SMOTE
-            smote = SMOTE(random_state=42, n_jobs=-1)
+            smote = SMOTE(random_state=42)
             X_bal, y_bal = smote.fit_resample(X, y)
             logger.info(f"SMOTE balanced dataset: {X_bal.shape[0]:,} samples")
             return X_bal, y_bal

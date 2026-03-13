@@ -116,7 +116,7 @@ def train_and_evaluate():
     logger.info("=" * 60)
     logger.info("STEP 1: Preprocessing dataset")
     logger.info("=" * 60)
-    data = preprocess(DATASET_PATH)
+    data = preprocess(DATASET_PATH, balance_strategy='undersample')
 
     X_train = data['X_train']
     X_test  = data['X_test']
