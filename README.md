@@ -225,7 +225,7 @@ ai-network-threat-detection/
 
 ## Research Gaps Addressed
 
-This project directly addresses open problems identified in the 2024–2025 NIDS literature:
+This project directly addresses open problems identified in the 2024–2026 NIDS literature:
 
 1. **Cross-dataset generalization** — most papers evaluate on one dataset in isolation. We expose real transfer difficulty with a leave-one-out benchmark.
 2. **Minority class blind spots** — PortScan (0.1% detection) and Web Attacks (2–7%) expose what overall accuracy hides.
@@ -239,10 +239,10 @@ This project directly addresses open problems identified in the 2024–2025 NIDS
 If you use this project in your research, please cite it:
 
 ```bibtex
-@software{ramasahayam2025ainids,
+@software{ramasahayam2026ainids,
   author    = {Ramasahayam, Dheeraj},
   title     = {AI-Powered Network Intrusion Detection System},
-  year      = {2025},
+  year      = {2026},
   url       = {https://github.com/dheerajramasahayam/ai-network-threat-detection},
   license   = {MIT},
   version   = {2.0.0}
@@ -261,7 +261,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). All contributions welcome — new datase
 
 ## License
 
-[MIT License](LICENSE) © 2025 Dheeraj Ramasahayam
+[MIT License](LICENSE) © 2026 Dheeraj Ramasahayam
 
 ---
 

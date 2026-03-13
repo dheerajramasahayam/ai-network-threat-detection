@@ -18,7 +18,7 @@ repository-code: "https://github.com/dheerajramasahayam/ai-network-threat-detect
 url: "https://github.com/dheerajramasahayam/ai-network-threat-detection"
 license: MIT
 version: "2.0.0"
-date-released: "2025-03-13"
+date-released: "2026-03-13"
 keywords:
   - network intrusion detection
   - machine learning
