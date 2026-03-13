@@ -18,10 +18,9 @@ env/
 # pytest
 .pytest_cache/
 
-# Trained model artifacts (large binary files)
-models/
-*.joblib
-*.pkl
+# Trained model artifacts — allow small joblib files, exclude large Keras weights
+*.keras
+*.h5
 
 # Dataset (large files — add your own locally)
 dataset/*.csv
