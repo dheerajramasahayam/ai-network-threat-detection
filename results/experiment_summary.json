@@ -1,0 +1,87 @@
+{
+  "dataset_summary": {
+    "dataset_name": "UNSW-NB15",
+    "train_rows": 82332,
+    "test_rows": 175341,
+    "total_rows": 257673,
+    "num_classes": 10,
+    "classes": {
+      "Analysis": 2677,
+      "Backdoor": 2329,
+      "DoS": 16353,
+      "Exploits": 44525,
+      "Fuzzers": 24246,
+      "Generic": 58871,
+      "Normal": 93000,
+      "Reconnaissance": 13987,
+      "Shellcode": 1511,
+      "Worms": 174
+    },
+    "numeric_features": [
+      "flow_duration",
+      "source_packets",
+      "destination_packets",
+      "source_bytes",
+      "destination_bytes",
+      "total_packets",
+      "total_bytes",
+      "avg_packet_size",
+      "source_packet_size_mean",
+      "destination_packet_size_mean",
+      "bytes_per_second",
+      "packets_per_second",
+      "source_bytes_per_second",
+      "destination_bytes_per_second",
+      "source_inter_packet_time",
+      "destination_inter_packet_time",
+      "tcp_round_trip_time",
+      "synack_latency",
+      "ack_latency",
+      "source_ttl",
+      "destination_ttl",
+      "source_loss",
+      "destination_loss",
+      "service_connection_count",
+      "destination_connection_count",
+      "source_destination_flow_count",
+      "source_port_reuse_count",
+      "destination_port_reuse_count",
+      "same_ip_port_flag",
+      "state_ttl_count"
+    ],
+    "categorical_features": [
+      "proto",
+      "service",
+      "state"
+    ]
+  },
+  "sampled_train_rows": 12000,
+  "sampled_test_rows": 5000,
+  "best_model": "Random Forest",
+  "results": {
+    "Random Forest": {
+      "accuracy": 0.9046,
+      "precision": 0.9205072709965463,
+      "recall": 0.9046,
+      "f1_score": 0.9069213562314264,
+      "roc_auc": 0.983879037830623,
+      "latency_ms_per_flow": 0.009448323567085026
+    },
+    "LSTM": {
+      "accuracy": 0.71,
+      "precision": 0.8182038154732548,
+      "recall": 0.71,
+      "f1_score": 0.7183837244283996,
+      "roc_auc": 0.8721567419479626,
+      "latency_ms_per_flow": 0.39654553890026517
+    },
+    "Transformer": {
+      "accuracy": 0.8526,
+      "precision": 0.8896410438303471,
+      "recall": 0.8526,
+      "f1_score": 0.8573243353035314,
+      "roc_auc": 0.9739660695249541,
+      "latency_ms_per_flow": 0.5291881917320514
+    }
+  }
+}

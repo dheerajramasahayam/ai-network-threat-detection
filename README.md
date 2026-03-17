@@ -1,274 +1,200 @@
-<div align="center">
+# AI-Based Network Threat Detection Using Deep Learning for Enterprise Infrastructure
 
-# 🛡️ AI-Powered Network Intrusion Detection System
+## Abstract
 
-**The most complete open-source ML-NIDS on GitHub**
+This repository is organized as a reproducible research project for enterprise network-threat detection. It uses the public `UNSW-NB15` benchmark, engineers flow-level features from raw traffic metadata, and compares three detection models:
 
-[![CI](https://github.com/dheerajramasahayam/ai-network-threat-detection/actions/workflows/ci.yml/badge.svg)](https://github.com/dheerajramasahayam/ai-network-threat-detection/actions)
-[![Python](https://img.shields.io/badge/Python-3.10%20|%203.11%20|%203.12-blue?logo=python)](https://www.python.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Dataset](https://img.shields.io/badge/Dataset-3.87M%20flows%20·%204%20sources-orange)](dataset/)
-[![Accuracy](https://img.shields.io/badge/Accuracy-99.86%25-brightgreen)](results/accuracy_report_combined.md)
-[![AUC](https://img.shields.io/badge/AUC-1.0000-brightgreen)](results/)
-[![XGBoost Throughput](https://img.shields.io/badge/XGBoost-1.54M%20flows%2Fsec-blue)](results/latency_benchmark.md)
+- `Random Forest`
+- `LSTM`
+- `Transformer`
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/dheerajramasahayam/ai-network-threat-detection/blob/main/demo.ipynb)
+The goal is to answer two research questions:
 
-</div>
+1. Can AI-based models detect network threats accurately enough for practical enterprise monitoring?
+2. Which model family performs best for attack detection on a reproducible benchmark?
 
----
+The bounded CPU benchmark included in this repository uses a stratified `12,000`-row training sample and a `5,000`-row test sample drawn from the official `UNSW-NB15` split. On that run, `Random Forest` achieved the best overall weighted `F1` score and the lowest inference latency, while `Transformer` produced the strongest deep-learning result.
 
-## What Makes This Different?
+## Problem Statement
 
-Most published ML-NIDS projects train on one dataset and report a single accuracy number. This project goes further:
+Traditional intrusion detection systems are effective for known signatures but struggle when traffic patterns shift or when attack behavior does not match a fixed rule set. This project investigates whether AI-based detection can provide a stronger learned signal from enterprise flow telemetry while remaining practical to reproduce and run on commodity hardware.
 
-| Feature | This Project | Typical NIDS Repo |
-|---|---|---|
-| Multi-dataset training (4 sources, 3.87M flows) | ✅ | ❌ |
-| Cross-dataset generalization benchmark | ✅ | ❌ |
-| Per-attack-class detection rate (15 classes) | ✅ | ❌ |
-| Adversarial robustness test (4 attack methods) | ✅ | ❌ |
-| Inference latency benchmark (p50/p95/p99) | ✅ | ❌ |
-| SHAP-based per-prediction explanation | ✅ | Rarely |
-| Zero-day unsupervised detection ensemble | ✅ | Rarely |
-| FastAPI production REST API | ✅ | Rarely |
-| Reproducible from raw Kaggle datasets | ✅ | ❌ |
+## Dataset
 
----
+The paper workflow is centered on `UNSW-NB15`.
 
-## Architecture
+- Full dataset size: `257,673` labeled flows
+- Official train split: `82,332`
+- Official test split: `175,341`
+- Attack families present in the raw corpus: `Analysis`, `Backdoor`, `DoS`, `Exploits`, `Fuzzers`, `Generic`, `Reconnaissance`, `Shellcode`, `Worms`, and `Normal`
+- Experiment target: binary `label` column (`Benign` vs `Attack`)
 
-![Architecture Diagram](docs/architecture_diagram.png)
+Supporting materials:
 
-The pipeline ingests flows from 4 public datasets, normalizes them to a 41-feature canonical schema, trains two complementary ensemble models, and exposes results through a FastAPI REST API with SHAP explanations and a Streamlit dashboard.
+- `dataset/README.md`
+- `dataset/preprocessing.ipynb`
+- `notebooks/feature_engineering.ipynb`
 
----
+## Methodology
+
+The preprocessing pipeline derives enterprise-relevant flow features from the raw UNSW records, including:
+
+- flow duration
+- source and destination bytes
+- total packets and total bytes
+- average packet size
+- byte and packet rates
+- inter-packet timing
+- TCP round-trip and ACK timing
+- TTL and loss counters
+- connection-count behavior
+- categorical context from `proto`, `service`, and `state`
+
+The implementation lives in `training/data_pipeline.py` and is used directly by the experiment runner so the notebooks and scripted results stay aligned.
+
+## Model Architectures
+
+### Random Forest
+
+Classical ensemble baseline for tabular traffic features. It serves as the strongest low-latency reference model in this repository.
+
+### LSTM
+
+A recurrent model that treats the engineered feature vector as a short ordered sequence, allowing the network to learn interactions across traffic statistics.
+
+### Transformer
+
+A self-attention model with learned positional embeddings over the feature sequence. This is the strongest deep-learning model in the current experiment set.
+
+Source files:
+
+- `models/random_forest.py`
+- `models/lstm_model.py`
+- `models/transformer_model.py`
+
+## Experiments
+
+Run the full paper pipeline with:
+
+```bash
+bash run_training.sh --max-train-rows 12000 --max-test-rows 5000 --epochs 6
+```
+
+This will:
+
+1. generate `architecture.png`
+2. train all three models
+3. write the comparison tables to `results/`
+4. create plots for confusion matrix, ROC, feature importance, and training loss
+5. generate `research_paper.pdf`
+
+You can also run the core experiment directly:
+
+```bash
+python3 training/run_experiments.py --max-train-rows 12000 --max-test-rows 5000 --epochs 6
+```
 
 ## Results
 
-### Multi-Dataset Training (3.87M flows, 4 sources)
+### Model Comparison
 
-| Model | Accuracy | Precision | Recall | F1 | AUC | Throughput |
-|---|---|---|---|---|---|---|
-| **RandomForest** | **99.86%** | 99.84% | 99.82% | 99.83% | **1.0000** | 277K flows/s |
-| **XGBoost** | **99.85%** | 99.82% | 99.81% | 99.81% | **1.0000** | **1.54M flows/s** |
+| Model | Accuracy | Precision | Recall | F1 Score | ROC AUC | Latency (ms/flow) |
+| --- | --- | --- | --- | --- | --- | --- |
+| Random Forest | 90.46% | 92.05% | 90.46% | 90.69% | 0.9839 | 0.0094 |
+| Transformer | 85.26% | 88.96% | 85.26% | 85.73% | 0.9740 | 0.5292 |
+| LSTM | 71.00% | 81.82% | 71.00% | 71.84% | 0.8722 | 0.3965 |
 
-### Cross-Dataset Generalization Benchmark
-*Train on 3 sources → test on unseen 4th (leave-one-out)*
+### Interpretation
 
-| Hold-Out Dataset | Accuracy | F1 | AUC |
-|---|---|---|---|
-| UNSW-NB15 | 93.01% | 96.38% | 0.50 |
-| NF-ToN-IoT | 100.00% | 100.00% | 0.50 |
-| NSL-KDD | 57.88% | 73.32% | 0.13 |
-| CICIDS2017 | 19.66% | 30.60% | 0.38 |
+- `Random Forest` is the best overall attack detector on this bounded reproducible run.
+- `Transformer` is the strongest deep-learning model and achieves a high `ROC AUC` of `0.9740`.
+- `LSTM` improves over a naive baseline but underperforms the other two models on this dataset and feature representation.
 
-![Cross-Dataset Heatmap](results/cross_dataset_heatmap.png)
+Generated figures:
 
-### Per-Attack-Class Detection (What 99% accuracy hides)
+- `results/confusion_matrix.png`
+- `results/roc_curve.png`
+- `results/feature_importance.png`
+- `results/training_loss_curves.png`
 
-| Attack | Samples | Detection Rate |
-|---|---|---|
-| PortScan | 158,930 | 🔴 **0.1%** |
-| Web Attack – XSS | 652 | 🔴 **2.9%** |
-| Web Attack – Brute Force | 1,507 | 🔴 **7.0%** |
-| DoS Slowhttptest | 5,499 | 🟡 **40.2%** |
-| DoS Hulk | 231,073 | 🟡 **69.1%** |
-| Heartbleed | 11 | 🟢 **100%** |
+## Comparison with Traditional IDS
 
-See [results/attack_report.md](results/attack_report.md) for the full breakdown.
+This repository does not benchmark Snort or Suricata directly, so the comparison to traditional IDS is qualitative rather than a strict head-to-head measurement.
 
-### Adversarial Robustness
+- Rule-based IDS remains strong for deterministic known signatures and can be extremely lightweight.
+- The AI models here learn from labeled flow behavior and produce calibrated probabilities instead of binary rule hits.
+- On the bounded CPU benchmark, the strongest AI model (`Random Forest`) still scores flows quickly enough for practical batch detection while offering broader statistical generalization than a fixed signature list.
 
-| Attack Method | Min ε | Evasion Rate |
-|---|---|---|
-| Feature Masking | any | 🟢 **1.14%** (most robust) |
-| Random Noise | 0.1 | 🔴 100% |
-| FGSM (Sign-Gradient) | 0.05 | 🔴 100% |
-| Boundary Walk | 0.05 | 🔴 100% |
+## Demo
 
-![Adversarial Robustness Chart](results/adversarial_robustness.png)
-
----
-
-## Training Data
-
-| Dataset | Rows | Attack Types | Source |
-|---|---|---|---|
-| CICIDS2017 | 2,830,743 | DDoS, PortScan, Bot, BruteForce, DoS, Infiltration | CIC |
-| UNSW-NB15 | 500,000 | Backdoor, Worm, Shellcode, Exploits, Fuzzers | UNSW |
-| NF-ToN-IoT v2 | 500,000 | Ransomware, XSS, MiTM, Scanning | UNSW |
-| NSL-KDD | 37,042 | R2L, U2R, DoS, Probe | UNB |
-| **Total** | **3,867,785** | **Most diverse open-source NIDS corpus** | |
-
----
-
-## Quick Start
-
-### Option A — Google Colab (no setup needed)
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/dheerajramasahayam/ai-network-threat-detection/blob/main/demo.ipynb)
-
-### Option B — Local
+After training, run:
 
 ```bash
-git clone https://github.com/dheerajramasahayam/ai-network-threat-detection.git
-cd ai-network-threat-detection
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
+python3 demo/run_detection.py --sample-index 0
 ```
 
-#### Train on CICIDS2017 (default)
-```bash
-python src/training.py
+Example output from the current trained artifacts:
+
+```text
+Threat detected: Attack
+Confidence: 100.00%
+Ground truth: Backdoor
+Model: Random Forest
 ```
 
-#### Download multi-datasets and train on combined corpus
-```bash
-export KAGGLE_API_TOKEN=<your_token>
-python src/dataset_downloader.py          # downloads + merges → dataset/combined.csv
-python src/training.py --dataset dataset/combined.csv --label-col label --tag combined
-```
+## Reproducibility
 
-#### Start the REST API
-```bash
-uvicorn src.api:app --reload --port 8000
-# → http://localhost:8000/docs
-```
+This repository includes:
 
-#### Run all benchmarks
-```bash
-python src/benchmark.py         # cross-dataset generalization
-python src/attack_report.py     # per-attack-class breakdown
-python src/adversarial.py       # adversarial robustness
-python src/latency_bench.py     # inference throughput
-```
+- `requirements.txt`
+- `Dockerfile`
+- `docker/Dockerfile`
+- `run_training.sh`
+- `research_paper.pdf`
+- `CITATION.cff`
 
-### Option C — Docker
+The raw dataset directory is ignored by Git by default so the repo can track the experiment code and paper assets without forcing large data uploads.
 
-```bash
-docker build -t ai-nids -f docker/Dockerfile .
-docker run -p 8000:8000 ai-nids
-```
+## Applications
 
----
-
-## REST API
-
-### Classify a Flow
-```bash
-curl -X POST http://localhost:8000/detect \
-  -H "Content-Type: application/json" \
-  -d '{"features": [0.0, 1.0, 2.0, ...]}'
-```
-```json
-{"label": "ATTACK", "confidence": 0.97, "model": "random_forest"}
-```
-
-### Classify With SHAP Explanation
-```bash
-curl -X POST http://localhost:8000/detect/explain \
-  -H "Content-Type: application/json" \
-  -d '{"features": [...]}'
-```
-```json
-{
-  "label": "ATTACK",
-  "confidence": 0.97,
-  "top_features": [
-    {"feature": "min_packet_len", "shap_value": 0.42},
-    {"feature": "fwd_psh_flags", "shap_value": 0.31}
-  ]
-}
-```
-
-### Zero-Day Anomaly Detection
-```bash
-curl -X POST http://localhost:8000/anomaly \
-  -d '{"features": [...]}'
-```
-
-Full API docs at `http://localhost:8000/docs`.
-
----
+- enterprise network monitoring research
+- academic cybersecurity projects
+- IDS benchmarking and reproducibility studies
+- ML and deep-learning coursework in security analytics
 
 ## Project Structure
 
-```
+```text
 ai-network-threat-detection/
-├── src/
-│   ├── preprocessing.py       ← Canonical 41-feature schema + CICIDS2017 normalizer
-│   ├── model.py               ← IntrusionDetectionModel (RF + XGBoost)
-│   ├── training.py            ← Multi-dataset training pipeline
-│   ├── detection.py           ← ThreatDetector for real-time inference
-│   ├── anomaly.py             ← Zero-day ensemble (IsolationForest + OCSVM + LOF)
-│   ├── api.py                 ← FastAPI REST endpoints
-│   ├── dataset_downloader.py  ← Kaggle downloader + schema normalizer
-│   ├── benchmark.py           ← Cross-dataset generalization benchmark
-│   ├── attack_report.py       ← Per-attack-class detection report
-│   ├── adversarial.py         ← Adversarial robustness test (4 methods)
-│   └── latency_bench.py       ← Inference latency benchmark
+├── dataset/
+├── demo/
+├── evaluation/
+├── models/
+├── notebooks/
 ├── results/
-│   ├── accuracy_report_combined.md
-│   ├── cross_dataset_benchmark.md
-│   ├── attack_report.md
-│   ├── adversarial_report.md
-│   └── latency_benchmark.md
-├── tests/test_model.py        ← 21 unit + integration tests
-├── demo.ipynb                 ← Google Colab end-to-end demo
-├── docs/architecture_diagram.png
-├── CONTRIBUTING.md
-├── CITATION.cff
-└── LICENSE
+├── training/
+├── architecture.png
+├── research_paper.pdf
+├── README.md
+├── requirements.txt
+└── CITATION.cff
 ```
 
----
-
-## Research Gaps Addressed
-
-This project directly addresses open problems identified in the 2024–2026 NIDS literature:
-
-1. **Cross-dataset generalization** — most papers evaluate on one dataset in isolation. We expose real transfer difficulty with a leave-one-out benchmark.
-2. **Minority class blind spots** — PortScan (0.1% detection) and Web Attacks (2–7%) expose what overall accuracy hides.
-3. **Adversarial vulnerability** — Boundary Walk achieves 100% evasion at ε=0.05, motivating adversarial training as future work.
-4. **Deployment metrics** — XGBoost at 1.54M flows/sec makes real-time detection on enterprise links feasible.
-
----
+The original `src/` directory from the earlier repository remains available as legacy implementation work, but the research workflow described in this README is driven by the `training/`, `models/`, `evaluation/`, and `demo/` directories.
 
 ## Citation
 
-If you use this project in your research, please cite it:
+Use the metadata in `CITATION.cff` or cite the project as:
 
 ```bibtex
-@software{ramasahayam2026ainids,
-  author    = {Ramasahayam, Dheeraj},
-  title     = {AI-Powered Network Intrusion Detection System},
-  year      = {2026},
-  url       = {https://github.com/dheerajramasahayam/ai-network-threat-detection},
-  license   = {MIT},
-  version   = {2.0.0}
+@article{ramasahayam2026,
+  title={AI-Based Network Threat Detection Using Deep Learning for Enterprise Infrastructure},
+  author={Ramasahayam, Dheeraj},
+  year={2026},
+  journal={GitHub Research Repository}
 }
 ```
 
-Or use the [CITATION.cff](CITATION.cff) file — GitHub generates a "Cite this repository" button automatically.
-
----
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md). All contributions welcome — new datasets, models, attack methods, or documentation improvements.
-
----
-
 ## License
 
-[MIT License](LICENSE) © 2026 Dheeraj Ramasahayam
-
----
-
-## References
-
-1. Sharafaldin et al. (2018). *Toward Generating a New Intrusion Detection Dataset.* ICISSP 2018.
-2. Moustafa & Slay (2015). *UNSW-NB15: A Comprehensive Dataset.* MilCIS 2015.
-3. Chen & Guestrin (2016). *XGBoost: A Scalable Tree Boosting System.* KDD '16.
-4. Lundberg & Lee (2017). *A Unified Approach to Interpreting Model Predictions.* NeurIPS 2017.
-5. Breiman (2001). *Random Forests.* Machine Learning, 45(1), 5–32.
+This repository is distributed under `CC BY 4.0`.

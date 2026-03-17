@@ -24,6 +24,9 @@ env/
 
 # Dataset (large files — add your own locally)
 dataset/*.csv
+dataset/raw/
+dataset/processed/*.csv
+dataset/processed/*.parquet
 
 # OS
 .DS_Store
@@ -33,3 +36,4 @@ Thumbs.db
 .vscode/
 .idea/
 models/*_combined.joblib
+models/artifacts/
