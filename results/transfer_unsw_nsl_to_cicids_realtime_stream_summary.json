@@ -1,14 +1,14 @@
 {
   "source": "file",
-  "processed_rows": 100000,
+  "processed_rows": 2830743,
   "metrics": {
-    "accuracy": 0.34675,
-    "precision": 0.15003377818778266,
-    "recall": 0.34675,
-    "f1_score": 0.2009100037373561,
-    "roc_auc": 0.605310791060605
+    "accuracy": 0.7425545166057109,
+    "precision": 0.6413158361896686,
+    "recall": 0.7425545166057109,
+    "f1_score": 0.6869364684858703,
+    "roc_auc": 0.4041427506000495
   },
-  "timeline_rows": 1,
+  "timeline_rows": 29,
   "artifacts": {
     "timeline_csv": "results/transfer_unsw_nsl_to_cicids_realtime_stream_timeline.csv",
     "timeline_markdown": "results/transfer_unsw_nsl_to_cicids_realtime_streaming_evaluation.md",

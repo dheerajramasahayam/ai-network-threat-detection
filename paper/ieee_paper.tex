@@ -23,7 +23,7 @@ Durham, North Carolina, USA
 \maketitle
 
 \begin{abstract}
-Enterprise intrusion detection remains a moving target because traditional rule-based systems are fast but narrow, while learned detectors often report strong in-dataset performance without demonstrating how they adapt to live distribution shift. This paper presents a reproducible benchmark over three public corpora: the full official UNSW-NB15 split, the full official NSL-KDD split, and the full external CICIDS2017 corpus. A transparent flow-signature IDS baseline is compared against Random Forest, LSTM, Transformer, a static Drift-Aware Hybrid, and an online Drift-Adaptive Hybrid controller that reweights the ensemble under detected shift. On UNSW-NB15, the static Drift-Aware Hybrid achieves the strongest weighted F1 score of 90.72\%, slightly above Random Forest at 90.65\%. On NSL-KDD, LSTM achieves the best weighted F1 score of 81.01\%. Under cross-dataset transfer from UNSW-NB15 and NSL-KDD into the full CICIDS2017 corpus, LSTM remains best overall with a weighted F1 score of 71.53\%, but the online Drift-Adaptive Hybrid improves the static hybrid from 61.35\% to 68.69\% weighted F1 without retraining the base detectors. The repository also reports latency-under-load, online adaptation traces, and explainability-by-ablation artifacts, making the benchmark more useful both as an academic paper and as an open-source systems study.
+Enterprise intrusion detection remains a moving target because traditional rule-based systems are fast but narrow, while learned detectors often report strong in-dataset performance without demonstrating how they adapt to live distribution shift. This paper presents a reproducible benchmark over three public corpora: the full official UNSW-NB15 split, the full official NSL-KDD split, and the full external CICIDS2017 corpus. A transparent flow-signature IDS baseline is compared against Random Forest, LSTM, Transformer, a static Drift-Aware Hybrid, and an online Drift-Adaptive Hybrid controller that reweights the ensemble under detected shift. On UNSW-NB15, the static Drift-Aware Hybrid achieves the strongest weighted F1 score of 90.72\%, slightly above Random Forest at 90.65\%. On NSL-KDD, LSTM achieves the best weighted F1 score of 81.01\%. Under cross-dataset transfer from UNSW-NB15 and NSL-KDD into the full CICIDS2017 corpus, LSTM remains best overall with a weighted F1 score of 71.53\%, but the online Drift-Adaptive Hybrid improves the static hybrid from 61.35\% to 68.69\% weighted F1 without retraining the base detectors. A separate real-time streaming emulation over 29 sequential windows reproduces the same aggregate streaming score and exposes sustained high drift throughout the external stream. The repository also reports latency-under-load, real-time streaming traces, online adaptation traces, and explainability-by-ablation artifacts, making the benchmark more useful both as an academic paper and as an open-source systems study.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -41,7 +41,7 @@ The contributions of this paper are fivefold:
 \item A static Drift-Aware Hybrid detector that fuses signature scores, Random Forest probabilities, LSTM probabilities, Transformer probabilities, and an Isolation Forest drift signal.
 \item An online Drift-Adaptive controller that derives stable and stressed ensemble regimes offline, then interpolates between them during deployment using a streaming drift estimate.
 \item Full official-split evaluation on UNSW-NB15 and NSL-KDD, plus external cross-dataset transfer from UNSW-NB15 and NSL-KDD into CICIDS2017.
-\item Deployment-oriented analysis through latency-under-load, online adaptation traces, and explainability validated by feature ablation.
+\item Deployment-oriented analysis through latency-under-load, real-time streaming evaluation, online adaptation traces, and explainability validated by feature ablation.
 \end{itemize}
 
 \section{Related Work}
@@ -147,7 +147,7 @@ Online Drift-Adaptive Hybrid & 74.26 & 64.13 & 74.26 & 68.69 \\
 \end{tabular}
 \end{table}
 
-The latency results reveal a clear speed hierarchy. On UNSW-NB15 at batch size 1{,}024, the Signature IDS baseline exceeds 1.2 million flows per second, Random Forest reaches roughly 71 thousand flows per second, LSTM reaches about 13.4 thousand flows per second, Transformer reaches about 11.8 thousand flows per second, and the hybrid model reaches about 5.2 thousand flows per second. The rule baseline is therefore still valuable when throughput dominates, but the accuracy gap remains large. The full-corpus online adaptation study shows that deployment-time adaptation can recover 7.34 weighted F1 points over the static hybrid on the external stream without touching the already-trained base detectors, while increasing average hybrid latency from 0.1240 to 0.2630 ms/flow. The tradeoff is therefore favorable for enterprise settings that can tolerate sub-millisecond model inference in exchange for better robustness under shift.
+The latency results reveal a clear speed hierarchy. On UNSW-NB15 at batch size 1{,}024, the Signature IDS baseline exceeds 1.2 million flows per second, Random Forest reaches roughly 71 thousand flows per second, LSTM reaches about 13.4 thousand flows per second, Transformer reaches about 11.8 thousand flows per second, and the hybrid model reaches about 5.2 thousand flows per second. The rule baseline is therefore still valuable when throughput dominates, but the accuracy gap remains large. The full-corpus online adaptation study shows that deployment-time adaptation can recover 7.34 weighted F1 points over the static hybrid on the external stream without touching the already-trained base detectors, while increasing average hybrid latency from 0.1240 to 0.2630 ms/flow. In a separate file-backed real-time emulation over 29 sequential windows, the same online controller preserved its aggregate weighted F1 of 68.69\%, achieved a mean window F1 of 73.80\%, and operated with a mean adaptation alpha of 0.9985, indicating that the external stream almost immediately pushes the model into its stressed regime. The tradeoff is therefore favorable for enterprise settings that can tolerate sub-millisecond model inference in exchange for better robustness under shift.
 
 \begin{figure}[t]
 \centering
@@ -165,8 +165,8 @@ The latency results reveal a clear speed hierarchy. On UNSW-NB15 at batch size 1
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\columnwidth]{../results/transfer_unsw_nsl_to_cicids_online_drift_adaptation.png}
-\caption{Online drift state and adaptive ensemble weights on the external transfer stream.}
+\includegraphics[width=\columnwidth]{../results/transfer_unsw_nsl_to_cicids_drift_timeline.png}
+\caption{Real-time streaming evaluation timeline over 29 sequential CICIDS2017 windows.}
 \label{fig:adaptation}
 \end{figure}
 
@@ -175,7 +175,7 @@ Three findings stand out. First, the traditional rule baseline remains exception
 
 Second, no single learned family dominates every evaluation setting. The static hybrid is strongest on UNSW-NB15, suggesting that explicit rules and drift signals can complement learned classifiers when the training and test distributions are closely related. However, LSTM is strongest on NSL-KDD and on the transfer benchmark, which suggests that the recurrent baseline is more robust than the static hybrid under the canonical cross-dataset mapping.
 
-Third, the transfer results show a strong domain-shift penalty even under full-corpus evaluation. Although LSTM retains the best weighted F1 score on CICIDS2017, the online adaptation controller materially improves the hybrid from 61.35 to 68.69 weighted F1. This is the strongest novelty result in the paper: static stacking alone was not enough, but lightweight online adaptation recovers a substantial part of the lost transfer performance without requiring continual retraining.
+Third, the transfer results show a strong domain-shift penalty even under full-corpus evaluation. Although LSTM retains the best weighted F1 score on CICIDS2017, the online adaptation controller materially improves the hybrid from 61.35 to 68.69 weighted F1. The real-time streaming replay confirms that this is not just an artifact of offline aggregation: the controller maintains the same aggregate performance across 29 sequential windows while its adaptation coefficient remains near saturation for almost the entire stream. This is the strongest novelty result in the paper: static stacking alone was not enough, but lightweight online adaptation recovers a substantial part of the lost transfer performance without requiring continual retraining.
 
 Explainability-by-ablation also supports the feature engineering design. On the official UNSW-NB15 study, replacing the top Random Forest importance features with benign-reference values causes a weighted F1 drop of 0.1284 on a sampled evaluation set, while replacing random features causes only a 0.0165 drop. This gap suggests that the most important canonical features are not arbitrary proxies.
 

@@ -157,7 +157,9 @@ Artifacts:
 
 ### Real-Time Streaming Evaluation
 
-The repository now includes an explicit real-time evaluation loop that can run either over file-backed streamed chunks or a Kafka topic. It records per-window detection quality and online adaptation behavior over time.
+The repository now includes an explicit real-time evaluation loop that can run either over file-backed streamed chunks or a Kafka topic. On the full file-backed `CICIDS2017` stream, the online `Drift-Adaptive Hybrid` processed `2,830,743` rows across `29` sequential windows and matched the full-corpus transfer score: `74.26%` accuracy, `68.69%` weighted `F1`, and `0.4041` `ROC AUC`.
+
+Windowed behavior is intentionally reported separately because it reveals the operational drift pattern rather than only the final aggregate score. In the verified full-stream run, mean window `F1` was `73.80%`, mean adaptation alpha was `0.9985`, and the controller entered the stressed regime almost immediately (`0.9572` in the first window, `1.0000` thereafter for nearly the entire stream).
 
 Artifacts:
 
