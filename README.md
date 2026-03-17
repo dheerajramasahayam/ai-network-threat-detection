@@ -81,6 +81,7 @@ Run the upgraded research pipeline with:
 ```bash
 bash run_training.sh --epochs 1 --batch-size 128 --rf-trees 60 --cicids-sample-size 0
 python3 evaluation/run_full_transfer_evaluation.py
+python3 evaluation/realtime_streaming_evaluation.py --source file --chunksize 100000 --max-chunks 5
 ```
 
 The full scripted benchmark trains all base detectors and evaluates:
@@ -90,6 +91,18 @@ The full scripted benchmark trains all base detectors and evaluates:
 3. external transfer from `UNSW-NB15 + NSL-KDD` into `CICIDS2017`
 4. online drift adaptation on the external stream
 5. latency-under-load and explainability-ablation artifacts
+6. real-time streaming evaluation with drift timeline output
+
+For streaming-style ingestion from Kafka:
+
+```bash
+python3 evaluation/realtime_streaming_evaluation.py \
+  --source kafka \
+  --kafka-bootstrap-servers localhost:9092 \
+  --kafka-topic network_flows
+```
+
+Kafka messages should include either the canonical 41-feature schema plus a binary `label`, or CICIDS-style feature names plus `Label`.
 
 ## Results
 
@@ -141,6 +154,16 @@ Artifacts:
 - `results/transfer_unsw_nsl_to_cicids_online_drift_adaptation.csv`
 - `results/transfer_unsw_nsl_to_cicids_online_drift_adaptation.md`
 - `results/transfer_unsw_nsl_to_cicids_online_drift_adaptation.png`
+
+### Real-Time Streaming Evaluation
+
+The repository now includes an explicit real-time evaluation loop that can run either over file-backed streamed chunks or a Kafka topic. It records per-window detection quality and online adaptation behavior over time.
+
+Artifacts:
+
+- `results/transfer_unsw_nsl_to_cicids_realtime_stream_timeline.csv`
+- `results/transfer_unsw_nsl_to_cicids_realtime_streaming_evaluation.md`
+- `results/transfer_unsw_nsl_to_cicids_drift_timeline.png`
 
 ### Interpretation
 

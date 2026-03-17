@@ -1,0 +1,2 @@
+batch,rows,accuracy,f1_score,precision,recall,ema_drift_score,adaptation_alpha
+1,100000,0.34675,0.2009100037373561,0.15003377818778266,0.34675,0.9400359999999999,0.957248
