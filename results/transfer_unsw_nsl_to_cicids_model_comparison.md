@@ -1,0 +1,9 @@
+# Experimental Results
+
+| Model | Accuracy | Precision | Recall | F1 Score | ROC AUC | Latency (ms/flow) |
+| --- | --- | --- | --- | --- | --- | --- |
+| LSTM | 80.30% | 64.48% | 80.30% | 71.53% | 0.2901 | 0.0718 |
+| Transformer | 80.16% | 64.46% | 80.16% | 71.46% | 0.4974 | 0.0809 |
+| Random Forest | 58.48% | 65.82% | 58.48% | 61.59% | 0.4681 | 0.0062 |
+| Drift-Aware Hybrid | 57.50% | 67.43% | 57.50% | 61.31% | 0.4677 | 0.1662 |
+| Signature IDS | 53.42% | 67.84% | 53.42% | 58.14% | 0.4643 | 0.0004 |

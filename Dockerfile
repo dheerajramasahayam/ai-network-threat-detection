@@ -12,9 +12,10 @@ COPY dataset/ ./dataset/
 COPY demo/ ./demo/
 COPY evaluation/ ./evaluation/
 COPY models/ ./models/
+COPY src/ ./src/
 COPY training/ ./training/
 COPY run_training.sh README.md CITATION.cff ./
 
 RUN mkdir -p results && chmod +x run_training.sh
 
-CMD ["bash", "run_training.sh", "--max-train-rows", "25000", "--max-test-rows", "10000", "--epochs", "5"]
+CMD ["bash", "run_training.sh", "--epochs", "2", "--batch-size", "256", "--rf-trees", "150", "--cicids-sample-size", "50000"]

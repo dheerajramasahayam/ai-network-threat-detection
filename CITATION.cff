@@ -3,18 +3,19 @@ message: "If you use this repository or paper, please cite it using the metadata
 type: software
 title: "AI-Based Network Threat Detection Using Deep Learning for Enterprise Infrastructure"
 abstract: >
-  A reproducible research repository for enterprise network-threat detection built
-  on the UNSW-NB15 benchmark. The project compares Random Forest, LSTM, and
-  Transformer models using engineered flow features, reports reproducible
-  experiments, and includes demo, notebooks, figures, and a generated paper PDF.
+  A reproducible multi-dataset research repository for enterprise network-threat
+  detection. The project compares a traditional flow-signature IDS baseline,
+  Random Forest, LSTM, Transformer, and a proposed Drift-Aware Hybrid detector
+  across official UNSW-NB15 and NSL-KDD splits plus external CICIDS2017 transfer
+  evaluation, with latency and explainability analyses.
 authors:
   - family-names: "Ramasahayam"
     given-names: "Dheeraj"
 repository-code: "https://github.com/dheerajramasahayam/ai-network-threat-detection"
 url: "https://github.com/dheerajramasahayam/ai-network-threat-detection"
 license: "CC-BY-4.0"
-version: "3.0.0"
-date-released: "2026-03-16"
+version: "4.0.0"
+date-released: "2026-03-17"
 keywords:
   - cybersecurity
   - network threat detection
@@ -22,7 +23,12 @@ keywords:
   - transformer
   - lstm
   - random forest
+  - signature ids
+  - cross-dataset transfer
+  - explainability
   - UNSW-NB15
+  - NSL-KDD
+  - CICIDS2017
   - intrusion detection
 preferred-citation:
   type: article
