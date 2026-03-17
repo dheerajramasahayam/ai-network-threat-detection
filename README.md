@@ -185,6 +185,7 @@ This repository includes:
 - `Dockerfile`
 - `docker/Dockerfile`
 - `run_training.sh`
+- `paper/ieee_paper.tex`
 - `research_paper.pdf`
 - `CITATION.cff`
 
@@ -206,6 +207,7 @@ ai-network-threat-detection/
 ├── evaluation/
 ├── models/
 ├── notebooks/
+├── paper/
 ├── results/
 ├── src/
 ├── training/
