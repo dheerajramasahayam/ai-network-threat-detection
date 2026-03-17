@@ -39,6 +39,8 @@ class ExperimentArtifacts:
     results_df: pd.DataFrame
     metrics_by_model: dict[str, dict[str, float]]
     best_model_name: str
+    hybrid_variant_name: str
+    hybrid_variant_mode: str
     signature_model: SignatureIDSBaseline
     random_forest: RandomForestThreatDetector
     lstm_model: LSTMThreatDetector
@@ -57,6 +59,17 @@ def _latency_wrapper(callable_fn, repeats: int = 3) -> float:
     return float(np.mean(timings))
 
 
+def _predict_hybrid_proba(
+    experiment: ExperimentArtifacts,
+    raw_df: pd.DataFrame,
+    X_scaled: np.ndarray,
+    batch_size: int = 512,
+) -> np.ndarray:
+    if experiment.hybrid_variant_mode == "static":
+        return experiment.hybrid_model.predict_proba_static(raw_df, X_scaled)
+    return experiment.hybrid_model.predict_proba(raw_df, X_scaled, batch_size=batch_size)
+
+
 def _predict_proba(model_name: str, experiment: ExperimentArtifacts, raw_df: pd.DataFrame, X_scaled: np.ndarray) -> np.ndarray:
     if model_name == "Signature IDS":
         return experiment.signature_model.predict_proba(raw_df)
@@ -66,8 +79,8 @@ def _predict_proba(model_name: str, experiment: ExperimentArtifacts, raw_df: pd.
         return experiment.lstm_model.predict_proba(X_scaled)
     if model_name == "Transformer":
         return experiment.transformer_model.predict_proba(X_scaled)
-    if model_name == "Drift-Aware Hybrid":
-        return experiment.hybrid_model.predict_proba(raw_df, X_scaled)
+    if model_name in {"Drift-Aware Hybrid", "Drift-Aware Hybrid (Static)", "Drift-Adaptive Hybrid", experiment.hybrid_variant_name}:
+        return _predict_hybrid_proba(experiment, raw_df, X_scaled)
     raise KeyError(model_name)
 
 
@@ -105,6 +118,8 @@ def _save_metadata(experiment: ExperimentArtifacts, artifacts_dir: Path, prefix:
                 "preprocessor": str((artifacts_dir / f"{prefix}_preprocessor.joblib")),
             },
             "results": experiment.metrics_by_model,
+            "hybrid_variant_name": experiment.hybrid_variant_name,
+            "hybrid_variant_mode": experiment.hybrid_variant_mode,
         },
         artifacts_dir / f"{prefix}_metadata.json",
     )
@@ -118,11 +133,16 @@ def run_model_family_experiment(
     epochs: int = 3,
     batch_size: int = 256,
     rf_trees: int = 200,
+    hybrid_variant_name: str = "Drift-Aware Hybrid (Static)",
+    hybrid_variant_mode: str = "static",
 ) -> ExperimentArtifacts:
     results_dir = Path(results_dir)
     artifacts_dir = Path(artifacts_dir)
     results_dir.mkdir(parents=True, exist_ok=True)
     artifacts_dir.mkdir(parents=True, exist_ok=True)
+
+    if hybrid_variant_mode not in {"static", "adaptive"}:
+        raise ValueError(f"Unsupported hybrid_variant_mode: {hybrid_variant_mode}")
 
     signature_model = SignatureIDSBaseline()
     signature_model.fit(split.train_df)
@@ -159,7 +179,7 @@ def run_model_family_experiment(
         "Random Forest": ("scaled", random_forest),
         "LSTM": ("scaled", lstm_model),
         "Transformer": ("scaled", transformer_model),
-        "Drift-Aware Hybrid": ("hybrid", hybrid_model),
+        hybrid_variant_name: ("hybrid", hybrid_model),
     }
 
     metrics_by_model: dict[str, dict[str, float]] = {}
@@ -178,11 +198,18 @@ def run_model_family_experiment(
             y_prob = model.predict_proba(split.test_df)
             latency_ms = (_latency_wrapper(lambda: model.predict_proba(latency_sample_raw)) / len(latency_sample_raw)) * 1000.0
         elif mode == "hybrid":
-            y_prob = model.predict_proba(split.test_df, split.X_test)
-            latency_ms = (
-                _latency_wrapper(lambda: model.predict_proba(latency_sample_raw, latency_sample_scaled)) /
-                len(latency_sample_raw)
-            ) * 1000.0
+            if hybrid_variant_mode == "static":
+                y_prob = model.predict_proba_static(split.test_df, split.X_test)
+                latency_ms = (
+                    _latency_wrapper(lambda: model.predict_proba_static(latency_sample_raw, latency_sample_scaled)) /
+                    len(latency_sample_raw)
+                ) * 1000.0
+            else:
+                y_prob = model.predict_proba(split.test_df, split.X_test)
+                latency_ms = (
+                    _latency_wrapper(lambda: model.predict_proba(latency_sample_raw, latency_sample_scaled)) /
+                    len(latency_sample_raw)
+                ) * 1000.0
         else:
             y_prob = model.predict_proba(split.X_test)
             latency_ms = (_latency_wrapper(lambda: model.predict_proba(latency_sample_scaled)) / len(latency_sample_raw)) * 1000.0
@@ -227,6 +254,8 @@ def run_model_family_experiment(
         results_df=results_df,
         metrics_by_model=metrics_by_model,
         best_model_name=best_model_name,
+        hybrid_variant_name=hybrid_variant_name,
+        hybrid_variant_mode=hybrid_variant_mode,
         signature_model=signature_model,
         random_forest=random_forest,
         lstm_model=lstm_model,
@@ -249,7 +278,7 @@ def run_latency_under_load(
 
     results_dir = Path(results_dir)
     rows = []
-    model_names = ["Signature IDS", "Random Forest", "LSTM", "Transformer", "Drift-Aware Hybrid"]
+    model_names = ["Signature IDS", "Random Forest", "LSTM", "Transformer", experiment.hybrid_variant_name]
 
     for model_name in model_names:
         for batch_size in batch_sizes:
@@ -257,8 +286,17 @@ def run_latency_under_load(
             scaled_batch = experiment.split.X_test[:batch_size]
             if model_name == "Signature IDS":
                 elapsed = _latency_wrapper(lambda: experiment.signature_model.predict_proba(raw_batch), repeats=5)
-            elif model_name == "Drift-Aware Hybrid":
-                elapsed = _latency_wrapper(lambda: experiment.hybrid_model.predict_proba(raw_batch, scaled_batch), repeats=5)
+            elif model_name == experiment.hybrid_variant_name:
+                if experiment.hybrid_variant_mode == "static":
+                    elapsed = _latency_wrapper(
+                        lambda: experiment.hybrid_model.predict_proba_static(raw_batch, scaled_batch),
+                        repeats=5,
+                    )
+                else:
+                    elapsed = _latency_wrapper(
+                        lambda: experiment.hybrid_model.predict_proba(raw_batch, scaled_batch, batch_size=batch_size),
+                        repeats=5,
+                    )
             elif model_name == "Random Forest":
                 elapsed = _latency_wrapper(lambda: experiment.random_forest.predict_proba(scaled_batch), repeats=5)
             elif model_name == "LSTM":
@@ -397,6 +435,107 @@ def run_explainability_ablation(
     plt.tight_layout()
     plt.savefig(results_dir / f"{prefix}_explainability_ablation.png", dpi=180)
     plt.close()
+
+
+def run_online_drift_adaptation(
+    experiment: ExperimentArtifacts,
+    results_dir: str | Path,
+    prefix: str,
+    batch_size: int = 512,
+) -> dict[str, dict[str, float]]:
+    results_dir = Path(results_dir)
+    static_prob = experiment.hybrid_model.predict_proba_static(
+        experiment.split.test_df,
+        experiment.split.X_test,
+    )
+    adaptive_prob = experiment.hybrid_model.predict_proba(
+        experiment.split.test_df,
+        experiment.split.X_test,
+        batch_size=batch_size,
+    )
+    trace = experiment.hybrid_model.last_adaptation_trace.copy()
+
+    static_pred = (static_prob[:, 1] >= 0.5).astype(int)
+    adaptive_pred = (adaptive_prob[:, 1] >= 0.5).astype(int)
+
+    metrics = {
+        "Static Hybrid": classification_metrics(
+            experiment.split.y_test,
+            static_pred,
+            static_prob,
+            CLASS_NAMES,
+        ),
+        "Online Drift-Adaptive Hybrid": classification_metrics(
+            experiment.split.y_test,
+            adaptive_pred,
+            adaptive_prob,
+            CLASS_NAMES,
+        ),
+    }
+    metrics["Static Hybrid"]["latency_ms_per_flow"] = float("nan")
+    metrics["Online Drift-Adaptive Hybrid"]["latency_ms_per_flow"] = float("nan")
+
+    rows = pd.DataFrame(
+        [
+            {
+                "Variant": name,
+                "Accuracy": round(values["accuracy"] * 100, 2),
+                "Precision": round(values["precision"] * 100, 2),
+                "Recall": round(values["recall"] * 100, 2),
+                "F1 Score": round(values["f1_score"] * 100, 2),
+                "ROC AUC": round(values["roc_auc"], 4),
+            }
+            for name, values in metrics.items()
+        ]
+    )
+    rows.to_csv(results_dir / f"{prefix}_online_drift_adaptation.csv", index=False)
+
+    md_lines = [
+        f"# {experiment.split_name} Online Drift Adaptation\n\n",
+        f"Batch size for online adaptation: `{batch_size}`\n\n",
+        "| Variant | Accuracy | Precision | Recall | F1 Score | ROC AUC |\n",
+        "| --- | --- | --- | --- | --- | --- |\n",
+    ]
+    for _, row in rows.iterrows():
+        md_lines.append(
+            f"| {row['Variant']} | {row['Accuracy']:.2f}% | {row['Precision']:.2f}% | "
+            f"{row['Recall']:.2f}% | {row['F1 Score']:.2f}% | {row['ROC AUC']:.4f} |\n"
+        )
+    if not trace.empty:
+        md_lines.extend(
+            [
+                "\nAdaptive batches summarize mean drift score, adaptation alpha, and the online ensemble weights.\n",
+                f"\nAverage adaptation alpha: `{trace['adaptation_alpha'].mean():.4f}`\n",
+                f"\nPeak adaptation alpha: `{trace['adaptation_alpha'].max():.4f}`\n",
+            ]
+        )
+    (results_dir / f"{prefix}_online_drift_adaptation.md").write_text("".join(md_lines))
+
+    if not trace.empty:
+        trace.to_csv(results_dir / f"{prefix}_online_drift_trace.csv", index=False)
+        fig, axes = plt.subplots(1, 2, figsize=(12, 4.5))
+        axes[0].plot(trace.index, trace["ema_drift_score"], label="EMA drift", color="#b45309", linewidth=2)
+        axes[0].plot(trace.index, trace["adaptation_alpha"], label="Adaptation alpha", color="#1d4ed8", linewidth=2)
+        axes[0].set_title("Online Drift State")
+        axes[0].set_xlabel("Batch")
+        axes[0].set_ylabel("Score")
+        axes[0].grid(alpha=0.25)
+        axes[0].legend(loc="best")
+
+        axes[1].plot(trace.index, trace["random_forest_weight"], label="RF", color="#0f766e", linewidth=2)
+        axes[1].plot(trace.index, trace["lstm_weight"], label="LSTM", color="#1d4ed8", linewidth=2)
+        axes[1].plot(trace.index, trace["transformer_weight"], label="Transformer", color="#b45309", linewidth=2)
+        axes[1].plot(trace.index, trace["stacked_meta_weight"], label="Meta", color="#7c3aed", linewidth=2)
+        axes[1].set_title("Adaptive Ensemble Weights")
+        axes[1].set_xlabel("Batch")
+        axes[1].set_ylabel("Weight")
+        axes[1].grid(alpha=0.25)
+        axes[1].legend(loc="best")
+        plt.tight_layout()
+        plt.savefig(results_dir / f"{prefix}_online_drift_adaptation.png", dpi=180)
+        plt.close()
+
+    return metrics
 
 
 def write_experiment_manifest(summary: dict, save_path: str | Path) -> None:

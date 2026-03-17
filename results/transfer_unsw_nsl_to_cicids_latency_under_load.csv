@@ -1,26 +1,26 @@
 Model,Batch Size,Latency (ms/flow),Throughput (flows/s)
-Signature IDS,1,0.8504,1175.85
-Signature IDS,16,0.0487,20524.66
-Signature IDS,64,0.0122,82156.57
-Signature IDS,256,0.0031,325844.76
-Signature IDS,1024,0.0008,1257264.26
-Random Forest,1,15.9234,62.8
-Random Forest,16,0.9967,1003.34
-Random Forest,64,0.2483,4027.05
-Random Forest,256,0.0529,18890.1
-Random Forest,1024,0.0125,80031.47
-LSTM,1,0.7996,1250.64
-LSTM,16,0.1536,6511.1
-LSTM,64,0.117,8546.03
-LSTM,256,0.0737,13570.09
-LSTM,1024,0.0722,13858.11
-Transformer,1,0.4872,2052.58
-Transformer,16,0.1036,9649.65
-Transformer,64,0.0789,12671.85
-Transformer,256,0.0745,13418.01
-Transformer,1024,0.0736,13580.22
-Drift-Aware Hybrid,1,23.2334,43.04
-Drift-Aware Hybrid,16,1.6137,619.71
-Drift-Aware Hybrid,64,0.5094,1962.91
-Drift-Aware Hybrid,256,0.2458,4068.28
-Drift-Aware Hybrid,1024,0.1872,5341.95
+Signature IDS,1,1.0299,971.0
+Signature IDS,16,0.0491,20371.79
+Signature IDS,64,0.0148,67501.08
+Signature IDS,256,0.0034,290622.89
+Signature IDS,1024,0.0008,1225796.8
+Random Forest,1,12.9618,77.15
+Random Forest,16,0.8025,1246.08
+Random Forest,64,0.2082,4802.41
+Random Forest,256,0.0512,19542.15
+Random Forest,1024,0.0136,73694.56
+LSTM,1,1.2223,818.12
+LSTM,16,0.1991,5022.21
+LSTM,64,0.1699,5887.46
+LSTM,256,0.0939,10649.24
+LSTM,1024,0.1249,8008.22
+Transformer,1,0.6479,1543.37
+Transformer,16,0.1784,5606.12
+Transformer,64,0.1307,7649.98
+Transformer,256,0.1223,8178.83
+Transformer,1024,0.119,8406.7
+Drift-Adaptive Hybrid,1,50.5939,19.77
+Drift-Adaptive Hybrid,16,3.6217,276.11
+Drift-Adaptive Hybrid,64,1.2813,780.46
+Drift-Adaptive Hybrid,256,0.6876,1454.34
+Drift-Adaptive Hybrid,1024,0.5417,1845.95

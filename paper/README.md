@@ -6,7 +6,7 @@ This directory contains a proper IEEE-style LaTeX paper source for the current b
 
 - `ieee_paper.tex`: main manuscript using `IEEEtran`
 - `references.bib`: bibliography database
-- `build.sh`: local build script for `pdflatex` + `bibtex`
+- `build.sh`: local build script using `tectonic` when available, with `pdflatex` + `bibtex` fallback
 
 ## Build
 

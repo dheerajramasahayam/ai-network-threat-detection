@@ -44,7 +44,7 @@ def main() -> None:
     add_box(ax, 2.55, 0.85, "Random Forest", "#0f766e")
     add_box(ax, 4.75, 0.85, "LSTM", "#1d4ed8")
     add_box(ax, 6.95, 0.85, "Transformer", "#b45309")
-    add_box(ax, 9.15, 0.85, "Drift-Aware Hybrid", "#7c3aed")
+    add_box(ax, 9.15, 0.85, "Drift-Adaptive Hybrid", "#7c3aed")
     add_box(ax, 11.35, 0.85, "Security Alert", "#be123c")
 
     add_arrow(ax, 2.1, 3.26, 3.6, 2.57)
@@ -64,7 +64,7 @@ def main() -> None:
     ax.text(
         6.75,
         3.95,
-        "AI-Based Network Threat Detection Using Deep Learning for Enterprise Infrastructure",
+        "Drift-Adaptive Intrusion Detection for Enterprise Networks",
         ha="center",
         va="center",
         fontsize=14,

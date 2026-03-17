@@ -205,7 +205,7 @@
         "roc_auc": 0.8799515630929138,
         "latency_ms_per_flow": 0.10399656152297136
       },
-      "Drift-Aware Hybrid": {
+      "Drift-Aware Hybrid (Static)": {
         "accuracy": 0.9053159272503294,
         "precision": 0.915962591214529,
         "recall": 0.9053159272503294,
@@ -247,7 +247,7 @@
         "roc_auc": 0.9346139871813047,
         "latency_ms_per_flow": 0.08621362988255517
       },
-      "Drift-Aware Hybrid": {
+      "Drift-Aware Hybrid (Static)": {
         "accuracy": 0.7923172462739532,
         "precision": 0.8451750266753242,
         "recall": 0.7923172462739532,
@@ -257,22 +257,6 @@
       }
     },
     "transfer_unsw_nsl_to_cicids": {
-      "Signature IDS": {
-        "accuracy": 0.5342,
-        "precision": 0.6784164139973586,
-        "recall": 0.5342,
-        "f1_score": 0.5813687553380028,
-        "roc_auc": 0.4642784987767951,
-        "latency_ms_per_flow": 0.0004188504263424875
-      },
-      "Random Forest": {
-        "accuracy": 0.5848,
-        "precision": 0.6581929331495,
-        "recall": 0.5848,
-        "f1_score": 0.6159222799497626,
-        "roc_auc": 0.46807302564621245,
-        "latency_ms_per_flow": 0.0061870929381295054
-      },
       "LSTM": {
         "accuracy": 0.803,
         "precision": 0.644809,
@@ -289,19 +273,55 @@
         "roc_auc": 0.4974260229722298,
         "latency_ms_per_flow": 0.08094472249335165
       },
-      "Drift-Aware Hybrid": {
-        "accuracy": 0.575,
-        "precision": 0.6743176159255274,
-        "recall": 0.575,
-        "f1_score": 0.6130968489351908,
-        "roc_auc": 0.46771497746395174,
-        "latency_ms_per_flow": 0.16623938671974278
+      "Drift-Adaptive Hybrid": {
+        "accuracy": 0.6728,
+        "precision": 0.6414,
+        "recall": 0.6728,
+        "f1_score": 0.6564,
+        "roc_auc": 0.4537,
+        "latency_ms_per_flow": 0.4343
+      },
+      "Random Forest": {
+        "accuracy": 0.5848,
+        "precision": 0.6581929331495,
+        "recall": 0.5848,
+        "f1_score": 0.6159222799497626,
+        "roc_auc": 0.46807302564621245,
+        "latency_ms_per_flow": 0.0061870929381295054
+      },
+      "Signature IDS": {
+        "accuracy": 0.5342,
+        "precision": 0.6784164139973586,
+        "recall": 0.5342,
+        "f1_score": 0.5813687553380028,
+        "roc_auc": 0.4642784987767951,
+        "latency_ms_per_flow": 0.0004188504263424875
       }
     }
   },
   "best_models": {
-    "official_unsw": "Drift-Aware Hybrid",
+    "official_unsw": "Drift-Aware Hybrid (Static)",
     "official_nsl_kdd": "LSTM",
     "transfer_unsw_nsl_to_cicids": "LSTM"
+  },
+  "online_drift_adaptation": {
+    "transfer_unsw_nsl_to_cicids": {
+      "Static Hybrid": {
+        "accuracy": 0.5752,
+        "precision": 0.6744,
+        "recall": 0.5752,
+        "f1_score": 0.6133,
+        "roc_auc": 0.484,
+        "latency_ms_per_flow": 0.1662
+      },
+      "Online Drift-Adaptive Hybrid": {
+        "accuracy": 0.6728,
+        "precision": 0.6414,
+        "recall": 0.6728,
+        "f1_score": 0.6564,
+        "roc_auc": 0.4537,
+        "latency_ms_per_flow": 0.4343
+      }
+    }
   }
 }

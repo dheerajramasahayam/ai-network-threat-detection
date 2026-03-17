@@ -86,8 +86,11 @@ def main() -> None:
 
     if best_model_name == "Signature IDS":
         probabilities = model.predict_proba(row_df)[0]
-    elif best_model_name == "Drift-Aware Hybrid":
-        probabilities = model.predict_proba(row_df, X)[0]
+    elif best_model_name in {"Drift-Aware Hybrid", "Drift-Aware Hybrid (Static)", "Drift-Adaptive Hybrid"}:
+        if best_model_name == "Drift-Adaptive Hybrid":
+            probabilities = model.predict_proba(row_df, X)[0]
+        else:
+            probabilities = model.predict_proba_static(row_df, X)[0]
     else:
         probabilities = model.predict_proba(X)[0]
 

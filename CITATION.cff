@@ -1,13 +1,14 @@
 cff-version: 1.2.0
 message: "If you use this repository or paper, please cite it using the metadata below."
 type: software
-title: "AI-Based Network Threat Detection Using Deep Learning for Enterprise Infrastructure"
+title: "Drift-Adaptive Intrusion Detection for Enterprise Networks"
 abstract: >
   A reproducible multi-dataset research repository for enterprise network-threat
   detection. The project compares a traditional flow-signature IDS baseline,
-  Random Forest, LSTM, Transformer, and a proposed Drift-Aware Hybrid detector
-  across official UNSW-NB15 and NSL-KDD splits plus external CICIDS2017 transfer
-  evaluation, with latency and explainability analyses.
+  Random Forest, LSTM, Transformer, a static Drift-Aware Hybrid, and an online
+  Drift-Adaptive Hybrid across official UNSW-NB15 and NSL-KDD splits plus
+  external CICIDS2017 transfer evaluation, with latency, explainability, and
+  online drift-adaptation analyses.
 authors:
   - family-names: "Ramasahayam"
     given-names: "Dheeraj"
@@ -25,6 +26,8 @@ keywords:
   - random forest
   - signature ids
   - cross-dataset transfer
+  - concept drift
+  - online adaptation
   - explainability
   - UNSW-NB15
   - NSL-KDD
@@ -32,7 +35,7 @@ keywords:
   - intrusion detection
 preferred-citation:
   type: article
-  title: "AI-Based Network Threat Detection Using Deep Learning for Enterprise Infrastructure"
+  title: "Drift-Adaptive Intrusion Detection for Enterprise Networks"
   authors:
     - family-names: "Ramasahayam"
       given-names: "Dheeraj"

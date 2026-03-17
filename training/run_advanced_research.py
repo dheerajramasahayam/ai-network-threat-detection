@@ -13,6 +13,7 @@ from evaluation.research_suite import (
     run_explainability_ablation,
     run_latency_under_load,
     run_model_family_experiment,
+    run_online_drift_adaptation,
     write_experiment_manifest,
 )
 from training.canonical_pipeline import (
@@ -43,9 +44,17 @@ def run(args: argparse.Namespace) -> None:
         epochs=args.epochs,
         batch_size=args.batch_size,
         rf_trees=args.rf_trees,
+        hybrid_variant_name="Drift-Aware Hybrid (Static)",
+        hybrid_variant_mode="static",
     )
     run_latency_under_load(unsw_experiment, RESULTS_DIR, prefix="official_unsw")
     run_explainability_ablation(unsw_experiment, RESULTS_DIR, prefix="official_unsw")
+    unsw_online_adaptation = run_online_drift_adaptation(
+        unsw_experiment,
+        RESULTS_DIR,
+        prefix="official_unsw",
+        batch_size=4096,
+    )
 
     nsl_split = prepare_official_nsl_split(args.nsl_dir)
     nsl_experiment = run_model_family_experiment(
@@ -56,8 +65,16 @@ def run(args: argparse.Namespace) -> None:
         epochs=args.epochs,
         batch_size=args.batch_size,
         rf_trees=args.rf_trees,
+        hybrid_variant_name="Drift-Aware Hybrid (Static)",
+        hybrid_variant_mode="static",
     )
     run_latency_under_load(nsl_experiment, RESULTS_DIR, prefix="official_nsl_kdd")
+    nsl_online_adaptation = run_online_drift_adaptation(
+        nsl_experiment,
+        RESULTS_DIR,
+        prefix="official_nsl_kdd",
+        batch_size=2048,
+    )
 
     transfer_split = prepare_joint_unsw_nsl_to_cicids(
         unsw_dir=args.unsw_dir,
@@ -73,8 +90,16 @@ def run(args: argparse.Namespace) -> None:
         epochs=args.epochs,
         batch_size=args.batch_size,
         rf_trees=args.rf_trees,
+        hybrid_variant_name="Drift-Adaptive Hybrid",
+        hybrid_variant_mode="adaptive",
     )
     run_latency_under_load(transfer_experiment, RESULTS_DIR, prefix="transfer_unsw_nsl_to_cicids")
+    transfer_online_adaptation = run_online_drift_adaptation(
+        transfer_experiment,
+        RESULTS_DIR,
+        prefix="transfer_unsw_nsl_to_cicids",
+        batch_size=1024,
+    )
 
     advanced_metadata = {
         "best_deployment_split": "official_unsw",
@@ -101,6 +126,11 @@ def run(args: argparse.Namespace) -> None:
             "official_unsw": unsw_experiment.metrics_by_model,
             "official_nsl_kdd": nsl_experiment.metrics_by_model,
             "transfer_unsw_nsl_to_cicids": transfer_experiment.metrics_by_model,
+        },
+        "online_drift_adaptation": {
+            "official_unsw": unsw_online_adaptation,
+            "official_nsl_kdd": nsl_online_adaptation,
+            "transfer_unsw_nsl_to_cicids": transfer_online_adaptation,
         },
         "best_models": {
             "official_unsw": unsw_experiment.best_model_name,

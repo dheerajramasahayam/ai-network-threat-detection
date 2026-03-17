@@ -10,43 +10,44 @@
 
 \begin{document}
 
-\title{AI-Based Network Threat Detection Using Deep Learning for Enterprise Infrastructure}
+\title{Drift-Adaptive Intrusion Detection for Enterprise Networks}
 
 \author{
 \IEEEauthorblockN{Dheeraj Ramasahayam}
 \IEEEauthorblockA{
-AI Network Threat Detection Research Repository\\
-GitHub: \url{https://github.com/dheerajramasahayam/ai-network-threat-detection}
+Independent Researcher\\
+Durham, North Carolina, USA
 }
 }
 
 \maketitle
 
 \begin{abstract}
-Enterprise intrusion detection remains a moving target because traditional rule-based systems are fast but narrow, while learned detectors often report strong in-dataset performance without demonstrating cross-dataset robustness or reproducible operational analysis. This paper presents a reproducible benchmark over three public corpora: the full official UNSW-NB15 split, the full official NSL-KDD split, and an external CICIDS2017 transfer holdout. A transparent flow-signature IDS baseline is compared against Random Forest, LSTM, Transformer, and a proposed Drift-Aware Hybrid detector that combines rule outputs, learned model probabilities, and an unsupervised drift score. On UNSW-NB15, the Drift-Aware Hybrid achieves the strongest weighted F1 score of 90.72\%, slightly above Random Forest at 90.65\%. On NSL-KDD, LSTM achieves the best weighted F1 score of 81.01\%. Under cross-dataset transfer from UNSW-NB15 and NSL-KDD into CICIDS2017, LSTM performs best with a weighted F1 score of 71.53\%, revealing a substantial but measurable generalization gap. The repository also reports latency-under-load and explainability-by-ablation artifacts, making the benchmark more useful both as an academic paper and as an open-source systems study.
+Enterprise intrusion detection remains a moving target because traditional rule-based systems are fast but narrow, while learned detectors often report strong in-dataset performance without demonstrating how they adapt to live distribution shift. This paper presents a reproducible benchmark over three public corpora: the full official UNSW-NB15 split, the full official NSL-KDD split, and an external CICIDS2017 transfer holdout. A transparent flow-signature IDS baseline is compared against Random Forest, LSTM, Transformer, a static Drift-Aware Hybrid, and an online Drift-Adaptive Hybrid controller that reweights the ensemble under detected shift. On UNSW-NB15, the static Drift-Aware Hybrid achieves the strongest weighted F1 score of 90.72\%, slightly above Random Forest at 90.65\%. On NSL-KDD, LSTM achieves the best weighted F1 score of 81.01\%. Under cross-dataset transfer from UNSW-NB15 and NSL-KDD into CICIDS2017, LSTM remains best overall with a weighted F1 score of 71.53\%, but the online Drift-Adaptive Hybrid improves the static hybrid from 61.33\% to 65.64\% weighted F1 without retraining the base detectors. The repository also reports latency-under-load, online adaptation traces, and explainability-by-ablation artifacts, making the benchmark more useful both as an academic paper and as an open-source systems study.
 \end{abstract}
 
 \begin{IEEEkeywords}
-intrusion detection, cybersecurity, deep learning, transformer, LSTM, benchmark, network traffic, transfer learning
+intrusion detection, cybersecurity, concept drift, online adaptation, deep learning, benchmark, network traffic, transfer learning
 \end{IEEEkeywords}
 
 \section{Introduction}
-Network intrusion detection systems (IDSs) remain central to enterprise defense because perimeter controls alone do not prevent compromise, lateral movement, or data exfiltration. Classical signature-based systems such as Snort prioritize precision and speed for known patterns, but novel attack behaviors and distribution shift continue to challenge rule maintenance and coverage \cite{roesch1999snort}. In parallel, machine learning and deep learning have become standard tools for anomaly and attack detection over labeled network telemetry \cite{kasongo2020unsw}. However, a recurring weakness in the literature is that many studies stop at single-dataset evaluation and do not pair accuracy with reproducibility, external transfer, or deployment-oriented latency analysis.
+Network intrusion detection systems (IDSs) remain central to enterprise defense because perimeter controls alone do not prevent compromise, lateral movement, or data exfiltration. Classical signature-based systems such as Snort prioritize precision and speed for known patterns, but novel attack behaviors and distribution shift continue to challenge rule maintenance and coverage \cite{roesch1999snort}. In parallel, machine learning and deep learning have become standard tools for anomaly and attack detection over labeled network telemetry \cite{kasongo2020unsw}. However, a recurring weakness in the literature is that many studies stop at single-dataset evaluation and do not pair accuracy with reproducibility, external transfer, or deployment-oriented latency analysis. A second weakness is that models are often evaluated as static objects even though concept drift is a known operational property of live data streams \cite{gama2014survey}.
 
-This paper addresses that gap with a repo-backed benchmark that compares one traditional rule baseline, three established learning models, and one new hybrid method across official splits and external transfer. The study is grounded in public datasets that are widely used in intrusion-detection research: UNSW-NB15 \cite{moustafa2015unsw}, NSL-KDD \cite{tavallaee2009kdd}, and CICIDS2017 \cite{sharafaldin2018cicids}. All data are mapped into a shared 41-feature flow representation so that the comparison remains fair across datasets and model families.
+This paper addresses that gap with a repo-backed benchmark that compares one traditional rule baseline, three established learning models, a static hybrid stack, and an online drift-adaptive controller across official splits and external transfer. The study is grounded in public datasets that are widely used in intrusion-detection research: UNSW-NB15 \cite{moustafa2015unsw}, NSL-KDD \cite{tavallaee2009kdd}, and CICIDS2017 \cite{sharafaldin2018cicids}. All data are mapped into a shared 41-feature flow representation so that the comparison remains fair across datasets and model families.
 
-The contributions of this paper are fourfold:
+The contributions of this paper are fivefold:
 \begin{itemize}
 \item A transparent flow-signature IDS baseline that serves as a reproducible traditional IDS comparator on public flow datasets.
-\item A Drift-Aware Hybrid detector that fuses signature scores, Random Forest probabilities, LSTM probabilities, Transformer probabilities, and an Isolation Forest drift signal.
+\item A static Drift-Aware Hybrid detector that fuses signature scores, Random Forest probabilities, LSTM probabilities, Transformer probabilities, and an Isolation Forest drift signal.
+\item An online Drift-Adaptive controller that derives stable and stressed ensemble regimes offline, then interpolates between them during deployment using a streaming drift estimate.
 \item Full official-split evaluation on UNSW-NB15 and NSL-KDD, plus external cross-dataset transfer from UNSW-NB15 and NSL-KDD into CICIDS2017.
-\item Deployment-oriented analysis through latency-under-load measurements and explainability validated by feature ablation.
+\item Deployment-oriented analysis through latency-under-load, online adaptation traces, and explainability validated by feature ablation.
 \end{itemize}
 
 \section{Related Work}
 UNSW-NB15 was introduced to provide a more modern alternative to KDD-era benchmarks and remains a common benchmark for binary and multi-class intrusion detection \cite{moustafa2015unsw}. NSL-KDD was proposed to correct redundancy and evaluation issues in KDD Cup 99 and is still useful as a historical baseline with official train and test partitions \cite{tavallaee2009kdd}. CICIDS2017 broadened the field with a large flow dataset spanning modern attacks such as DDoS, botnet activity, and web attacks \cite{sharafaldin2018cicids}.
 
-Among learning methods, Random Forest remains a strong baseline for tabular intrusion features and has shown competitive performance on UNSW-NB15 \cite{kasongo2020unsw}. LSTM is a natural sequential baseline because it can model ordered feature interactions and temporal-style dependencies \cite{hochreiter1997lstm}. Transformer models provide a stronger attention-based alternative for long-range feature interaction modeling \cite{vaswani2017attention}. In this work, these model families are not treated as novel on their own; instead, they serve as established comparators around the proposed hybrid detector and the transfer-oriented evaluation protocol.
+Among learning methods, Random Forest remains a strong baseline for tabular intrusion features and has shown competitive performance on UNSW-NB15 \cite{kasongo2020unsw}. LSTM is a natural sequential baseline because it can model ordered feature interactions and temporal-style dependencies \cite{hochreiter1997lstm}. Transformer models provide a stronger attention-based alternative for long-range feature interaction modeling \cite{vaswani2017attention}. Concept drift adaptation is also well established as a requirement for live data systems \cite{gama2014survey}, but it is still under-emphasized in many intrusion-detection benchmarks. In this work, the model families themselves are not claimed as novel; the paper's novelty comes from pairing them with a reproducible online adaptation layer and a stronger transfer-oriented evaluation protocol.
 
 \section{Datasets and Experimental Protocol}
 Table~\ref{tab:datasets} summarizes the data used in this study. The benchmark uses the full official train/test files shipped with UNSW-NB15 and NSL-KDD. For external transfer, the UNSW-NB15 and NSL-KDD training data are combined into a joint source-domain training set and evaluated on a stratified 5{,}000-row CICIDS2017 holdout. This verified holdout size was selected to keep the end-to-end artifact generation practical on CPU-only hardware while preserving class diversity from the larger CICIDS2017 release.
@@ -76,8 +77,8 @@ The public datasets used in this study are distributed primarily as labeled flow
 \subsection{Established Learning Models}
 Random Forest serves as the classical tabular baseline because it is strong on mixed-scale engineered features and efficient at inference time \cite{breiman2001random}. LSTM is used as a recurrent deep baseline \cite{hochreiter1997lstm}. Transformer is used as an attention-based deep baseline that can model non-local feature interactions through self-attention \cite{vaswani2017attention}. All deep models are trained with weighted sampling and weighted cross-entropy to reduce bias from class imbalance.
 
-\subsection{Proposed Drift-Aware Hybrid}
-The proposed Drift-Aware Hybrid forms a second-stage meta-classifier over the following signals:
+\subsection{Proposed Drift-Adaptive Hybrid}
+The proposed method contains two layers. First, a static Drift-Aware Hybrid forms a second-stage meta-classifier over the following signals:
 \begin{itemize}
 \item flow-signature IDS attack probability,
 \item Random Forest attack probability,
@@ -86,17 +87,17 @@ The proposed Drift-Aware Hybrid forms a second-stage meta-classifier over the fo
 \item a normalized drift score from Isolation Forest.
 \end{itemize}
 
-The hybrid model is trained on validation data and learns when to trust deterministic rules, when to trust fast tabular classification, and when to defer to deep models under shift. This design is motivated by the observation that no single family dominates all three evaluation settings in this benchmark.
+The static hybrid is trained on validation data and learns when to trust deterministic rules, when to trust fast tabular classification, and when to defer to deep models under shift. On top of that, an online adaptation controller derives two ensemble regimes: a stable regime from the original validation distribution and a stressed regime from synthetically drifted validation batches. During deployment, the controller tracks an exponential moving average of the Isolation Forest drift score and interpolates between those regimes. As drift grows, the controller gradually reduces reliance on the more brittle tabular branch and increases reliance on the temporal branches and the stacked meta-classifier. This design is motivated by the observation that no single family dominates all three evaluation settings in this benchmark.
 
 \begin{figure*}[t]
 \centering
 \includegraphics[width=0.96\textwidth]{../architecture.png}
-\caption{System overview of the multi-dataset benchmark and the proposed Drift-Aware Hybrid pipeline.}
+\caption{System overview of the multi-dataset benchmark and the proposed Drift-Adaptive Hybrid pipeline.}
 \label{fig:architecture}
 \end{figure*}
 
 \section{Experimental Results}
-Table~\ref{tab:results} reports the main quantitative results. On the official UNSW-NB15 split, the Drift-Aware Hybrid achieves the highest weighted F1 score of 90.72\%, narrowly beating Random Forest at 90.65\%. On the official NSL-KDD split, LSTM achieves the best weighted F1 score of 81.01\%, with Transformer close behind at 80.52\%. On cross-dataset transfer into CICIDS2017, LSTM again leads with a weighted F1 score of 71.53\%.
+Table~\ref{tab:results} reports the main quantitative results. On the official UNSW-NB15 split, the static Drift-Aware Hybrid achieves the highest weighted F1 score of 90.72\%, narrowly beating Random Forest at 90.65\%. On the official NSL-KDD split, LSTM achieves the best weighted F1 score of 81.01\%, with Transformer close behind at 80.52\%. On cross-dataset transfer into CICIDS2017, LSTM leads with a weighted F1 score of 71.53\%, while the online Drift-Adaptive Hybrid improves substantially over its own static counterpart.
 
 \begin{table*}[t]
 \caption{Model comparison across official splits and external transfer.}
@@ -107,8 +108,8 @@ Table~\ref{tab:results} reports the main quantitative results. On the official U
 \toprule
 Split & Model & Accuracy (\%) & Precision (\%) & Recall (\%) & F1 (\%) & ROC AUC & Latency (ms/flow) \\
 \midrule
-\multirow{5}{*}{UNSW-NB15} 
-& Drift-Aware Hybrid & 90.53 & 91.60 & 90.53 & 90.72 & 0.9816 & 0.1804 \\
+\multirow{5}{*}{UNSW-NB15}
+& Drift-Aware Hybrid (Static) & 90.53 & 91.60 & 90.53 & 90.72 & 0.9816 & 0.1804 \\
 & Random Forest & 90.46 & 91.55 & 90.46 & 90.65 & 0.9792 & 0.0068 \\
 & LSTM & 72.84 & 83.67 & 72.84 & 73.60 & 0.9065 & 0.0780 \\
 & Transformer & 71.15 & 83.42 & 71.15 & 71.87 & 0.8800 & 0.1040 \\
@@ -117,21 +118,36 @@ Split & Model & Accuracy (\%) & Precision (\%) & Recall (\%) & F1 (\%) & ROC AUC
 \multirow{5}{*}{NSL-KDD}
 & LSTM & 81.08 & 85.23 & 81.08 & 81.01 & 0.9288 & 0.0743 \\
 & Transformer & 80.61 & 85.04 & 80.61 & 80.52 & 0.9346 & 0.0862 \\
-& Drift-Aware Hybrid & 79.23 & 84.52 & 79.23 & 79.06 & 0.9508 & 0.1845 \\
+& Drift-Aware Hybrid (Static) & 79.23 & 84.52 & 79.23 & 79.06 & 0.9508 & 0.1845 \\
 & Random Forest & 77.71 & 83.75 & 77.71 & 77.44 & 0.9366 & 0.0074 \\
 & Signature IDS & 54.66 & 51.32 & 54.66 & 49.47 & 0.3541 & 0.0004 \\
 \midrule
 \multirow{5}{*}{UNSW+NSL $\rightarrow$ CICIDS2017}
 & LSTM & 80.30 & 64.48 & 80.30 & 71.53 & 0.2901 & 0.0718 \\
 & Transformer & 80.16 & 64.46 & 80.16 & 71.46 & 0.4974 & 0.0809 \\
+& Drift-Adaptive Hybrid & 67.28 & 64.14 & 67.28 & 65.64 & 0.4537 & 0.4343 \\
 & Random Forest & 58.48 & 65.82 & 58.48 & 61.59 & 0.4681 & 0.0062 \\
-& Drift-Aware Hybrid & 57.50 & 67.43 & 57.50 & 61.31 & 0.4677 & 0.1662 \\
 & Signature IDS & 53.42 & 67.84 & 53.42 & 58.14 & 0.4643 & 0.0004 \\
 \bottomrule
 \end{tabular}
 \end{table*}
 
-The latency results reveal a clear speed hierarchy. On UNSW-NB15 at batch size 1{,}024, the Signature IDS baseline exceeds 1.2 million flows per second, Random Forest reaches roughly 71 thousand flows per second, LSTM reaches about 13.4 thousand flows per second, Transformer reaches about 11.8 thousand flows per second, and the hybrid model reaches about 5.2 thousand flows per second. The rule baseline is therefore still valuable when throughput dominates, but the accuracy gap remains large.
+\begin{table}[t]
+\caption{Online drift adaptation on the external CICIDS2017 transfer stream.}
+\label{tab:adaptation}
+\centering
+\small
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Variant & Acc. & Prec. & Rec. & F1 \\
+\midrule
+Static Hybrid & 57.52 & 67.44 & 57.52 & 61.33 \\
+Online Drift-Adaptive Hybrid & 67.28 & 64.14 & 67.28 & 65.64 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The latency results reveal a clear speed hierarchy. On UNSW-NB15 at batch size 1{,}024, the Signature IDS baseline exceeds 1.2 million flows per second, Random Forest reaches roughly 71 thousand flows per second, LSTM reaches about 13.4 thousand flows per second, Transformer reaches about 11.8 thousand flows per second, and the hybrid model reaches about 5.2 thousand flows per second. The rule baseline is therefore still valuable when throughput dominates, but the accuracy gap remains large. The online adaptation study shows that deployment-time adaptation can recover 4.31 weighted F1 points over the static hybrid on the external stream without touching the already-trained base detectors, while increasing average hybrid latency from 0.1662 to 0.4343 ms/flow. The tradeoff is therefore favorable for enterprise settings that can tolerate sub-millisecond model inference in exchange for better robustness under shift.
 
 \begin{figure}[t]
 \centering
@@ -147,19 +163,26 @@ The latency results reveal a clear speed hierarchy. On UNSW-NB15 at batch size 1
 \label{fig:latency}
 \end{figure}
 
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{../results/transfer_unsw_nsl_to_cicids_online_drift_adaptation.png}
+\caption{Online drift state and adaptive ensemble weights on the external transfer stream.}
+\label{fig:adaptation}
+\end{figure}
+
 \section{Discussion}
 Three findings stand out. First, the traditional rule baseline remains exceptionally fast, but its weighted F1 score trails the best learned models by more than 35 points on UNSW-NB15 and more than 30 points on NSL-KDD. This supports the central premise that learned detection can extend beyond static rules when high-quality labels are available.
 
-Second, no single learned family dominates every evaluation setting. The hybrid model is strongest on UNSW-NB15, suggesting that explicit rules and drift signals can complement learned classifiers when the training and test distributions are closely related. However, LSTM is strongest on NSL-KDD and on the transfer benchmark, which suggests that the current recurrent baseline is more robust than the current hybrid design under the canonical cross-dataset mapping.
+Second, no single learned family dominates every evaluation setting. The static hybrid is strongest on UNSW-NB15, suggesting that explicit rules and drift signals can complement learned classifiers when the training and test distributions are closely related. However, LSTM is strongest on NSL-KDD and on the transfer benchmark, which suggests that the recurrent baseline is more robust than the static hybrid under the canonical cross-dataset mapping.
 
-Third, the transfer results show a strong domain-shift penalty. Although LSTM and Transformer retain the best weighted F1 scores on the CICIDS2017 holdout, the ROC AUC values and the performance drop relative to the in-dataset results indicate that external generalization remains difficult. This negative result is important: a benchmark that only reports in-dataset performance would overstate readiness for deployment.
+Third, the transfer results show a strong domain-shift penalty. Although LSTM retains the best weighted F1 score on the CICIDS2017 holdout, the online adaptation controller materially improves the hybrid from 61.33 to 65.64 weighted F1. This is the strongest novelty result in the paper: static stacking alone was not enough, but lightweight online adaptation recovers part of the lost transfer performance without requiring continual retraining.
 
 Explainability-by-ablation also supports the feature engineering design. On the official UNSW-NB15 study, replacing the top Random Forest importance features with benign-reference values causes a weighted F1 drop of 0.1284 on a sampled evaluation set, while replacing random features causes only a 0.0165 drop. This gap suggests that the most important canonical features are not arbitrary proxies.
 
 The main limitation of the current artifact is that the verified external transfer report uses a 5{,}000-row CICIDS2017 holdout to keep the end-to-end run practical on CPU-only hardware. The full CICIDS2017 corpus can be evaluated by increasing the holdout size in the repository scripts, but that heavier run was not the basis of the verified numbers reported here.
 
 \section{Conclusion}
-This paper presented a reproducible IEEE-style benchmark for enterprise network intrusion detection across two official benchmark splits and one external transfer setting. A transparent flow-signature IDS baseline, Random Forest, LSTM, Transformer, and a proposed Drift-Aware Hybrid detector were compared under a shared 41-feature representation. The hybrid model was strongest on UNSW-NB15, while LSTM was strongest on NSL-KDD and on the CICIDS2017 transfer holdout. The results show that learned detectors can substantially outperform a rule-based baseline in accuracy, but also that cross-dataset generalization remains a major challenge. Future work should expand the external holdout, evaluate additional public corpora, and test whether online adaptation or calibration can improve cross-domain robustness without sacrificing the throughput advantages of simpler models.
+This paper presented a reproducible IEEE-style benchmark for enterprise network intrusion detection across two official benchmark splits and one external transfer setting. A transparent flow-signature IDS baseline, Random Forest, LSTM, Transformer, a static Drift-Aware Hybrid, and an online Drift-Adaptive Hybrid controller were compared under a shared 41-feature representation. The static hybrid was strongest on UNSW-NB15, while LSTM was strongest on NSL-KDD and on the CICIDS2017 transfer holdout. The key contribution is that online drift adaptation improved the hybrid from 61.33 to 65.64 weighted F1 on the external stream without retraining the base detectors. The results show that learned detectors can substantially outperform a rule-based baseline in accuracy, but also that cross-dataset generalization remains a major challenge and that adaptation should be treated as a first-class IDS design concern.
 
 \balance
 \bibliographystyle{IEEEtran}
