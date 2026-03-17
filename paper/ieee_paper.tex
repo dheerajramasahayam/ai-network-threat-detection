@@ -55,14 +55,14 @@ Table~\ref{tab:datasets} summarizes the data used in this study. The benchmark u
 \caption{Datasets and evaluation protocol.}
 \label{tab:datasets}
 \centering
-\small
-\begin{tabular}{@{}lrrp{2.2cm}@{}}
+\scriptsize
+\begin{tabular}{@{}p{1.75cm}rrp{1.7cm}@{}}
 \toprule
 Dataset & Train & Test & Protocol \\
 \midrule
 UNSW-NB15 & 82{,}332 & 175{,}341 & Full official split \\
 NSL-KDD & 125{,}973 & 22{,}544 & Full official split \\
-UNSW+NSL $\rightarrow$ CICIDS2017 & 208{,}305 & 5{,}000 & External transfer holdout \\
+\shortstack[l]{UNSW+NSL\\$\rightarrow$ CICIDS2017} & 208{,}305 & 5{,}000 & External holdout \\
 \bottomrule
 \end{tabular}
 \end{table}
