@@ -106,7 +106,12 @@ class TestDriftAwareHybrid(unittest.TestCase):
         )
         model.fit(train_scaled, raw_df, val_scaled, y_val)
         static_probabilities = model.predict_proba_static(raw_df.iloc[:8], val_scaled[:8])
-        probabilities = model.predict_proba(raw_df.iloc[:8], val_scaled[:8], batch_size=4)
+        probabilities, state = model.predict_proba(
+            raw_df.iloc[:8],
+            val_scaled[:8],
+            batch_size=4,
+            return_state=True,
+        )
 
         self.assertEqual(static_probabilities.shape, (8, 2))
         self.assertEqual(probabilities.shape, (8, 2))
@@ -115,6 +120,8 @@ class TestDriftAwareHybrid(unittest.TestCase):
         np.testing.assert_allclose(probabilities.sum(axis=1), np.ones(8), atol=1e-5)
         self.assertFalse(model.last_adaptation_trace.empty)
         self.assertIn("adaptation_alpha", model.last_adaptation_trace.columns)
+        self.assertGreater(state["next_offset"], 0)
+
 
 
 if __name__ == "__main__":

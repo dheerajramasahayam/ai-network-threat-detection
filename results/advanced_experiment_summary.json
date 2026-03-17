@@ -116,14 +116,14 @@
   "external_transfer_split": {
     "name": "UNSW+NSL -> CICIDS2017",
     "train_rows": 208305,
-    "test_rows": 5000,
+    "test_rows": 2830743,
     "train_distribution": {
       "0": 88691,
       "1": 88368
     },
     "test_distribution": {
-      "0": 4015,
-      "1": 985
+      "0": 2273097,
+      "1": 557646
     },
     "feature_count": 41,
     "feature_names": [
@@ -170,7 +170,7 @@
       "min_seg_size_fwd"
     ]
   },
-  "external_cicids_rows": 5000,
+  "external_cicids_rows": 2830743,
   "results": {
     "official_unsw": {
       "Signature IDS": {
@@ -257,45 +257,45 @@
       }
     },
     "transfer_unsw_nsl_to_cicids": {
-      "LSTM": {
-        "accuracy": 0.803,
-        "precision": 0.644809,
-        "recall": 0.803,
-        "f1_score": 0.7152623405435385,
-        "roc_auc": 0.290064162942266,
-        "latency_ms_per_flow": 0.07179374853668226
-      },
-      "Transformer": {
-        "accuracy": 0.8016,
-        "precision": 0.6445872221109554,
-        "recall": 0.8016,
-        "f1_score": 0.7145701598579041,
-        "roc_auc": 0.4974260229722298,
-        "latency_ms_per_flow": 0.08094472249335165
-      },
-      "Drift-Adaptive Hybrid": {
-        "accuracy": 0.6728,
-        "precision": 0.6414,
-        "recall": 0.6728,
-        "f1_score": 0.6564,
-        "roc_auc": 0.4537,
-        "latency_ms_per_flow": 0.4343
+      "Signature IDS": {
+        "accuracy": 0.5333543172234286,
+        "precision": 0.6833456881100383,
+        "recall": 0.5333543172234286,
+        "f1_score": 0.5808663047277619,
+        "roc_auc": 0.47160744909568153,
+        "latency_ms_per_flow": 0.0004397786455001551
       },
       "Random Forest": {
-        "accuracy": 0.5848,
-        "precision": 0.6581929331495,
-        "recall": 0.5848,
-        "f1_score": 0.6159222799497626,
-        "roc_auc": 0.46807302564621245,
-        "latency_ms_per_flow": 0.0061870929381295054
+        "accuracy": 0.585148139552054,
+        "precision": 0.6555391580010301,
+        "recall": 0.5851481395520539,
+        "f1_score": 0.6153417736557404,
+        "roc_auc": 0.46209879384050767,
+        "latency_ms_per_flow": 0.005979939776542172
       },
-      "Signature IDS": {
-        "accuracy": 0.5342,
-        "precision": 0.6784164139973586,
-        "recall": 0.5342,
-        "f1_score": 0.5813687553380028,
-        "roc_auc": 0.4642784987767951,
-        "latency_ms_per_flow": 0.0004188504263424875
+      "LSTM": {
+        "accuracy": 0.8030036637024273,
+        "precision": 0.6448148839195209,
+        "recall": 0.8030036637024273,
+        "f1_score": 0.715267413927943,
+        "roc_auc": 0.2903586880876689,
+        "latency_ms_per_flow": 0.040554334797586
+      },
+      "Transformer": {
+        "accuracy": 0.8022688742849492,
+        "precision": 0.645824179693765,
+        "recall": 0.8022688742849492,
+        "f1_score": 0.7149122891183681,
+        "roc_auc": 0.4885763463751746,
+        "latency_ms_per_flow": 0.07620675993299149
+      },
+      "Drift-Adaptive Hybrid": {
+        "accuracy": 0.7425545166057109,
+        "precision": 0.6413158361896686,
+        "recall": 0.7425545166057109,
+        "f1_score": 0.6869364684858703,
+        "roc_auc": 0.4041427506000495,
+        "latency_ms_per_flow": 0.26295249430556095
       }
     }
   },
@@ -307,20 +307,20 @@
   "online_drift_adaptation": {
     "transfer_unsw_nsl_to_cicids": {
       "Static Hybrid": {
-        "accuracy": 0.5752,
-        "precision": 0.6744,
-        "recall": 0.5752,
-        "f1_score": 0.6133,
-        "roc_auc": 0.484,
-        "latency_ms_per_flow": 0.1662
+        "accuracy": 0.5764680862939519,
+        "precision": 0.6709560702404544,
+        "recall": 0.5764680862939519,
+        "f1_score": 0.6134703138445888,
+        "roc_auc": 0.47546482370979765,
+        "latency_ms_per_flow": 0.12403162971944917
       },
       "Online Drift-Adaptive Hybrid": {
-        "accuracy": 0.6728,
-        "precision": 0.6414,
-        "recall": 0.6728,
-        "f1_score": 0.6564,
-        "roc_auc": 0.4537,
-        "latency_ms_per_flow": 0.4343
+        "accuracy": 0.7425545166057109,
+        "precision": 0.6413158361896686,
+        "recall": 0.7425545166057109,
+        "f1_score": 0.6869364684858703,
+        "roc_auc": 0.4041427506000495,
+        "latency_ms_per_flow": 0.26295249430556095
       }
     }
   }

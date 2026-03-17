@@ -13,7 +13,7 @@ The benchmark now studies six configurations:
 - `Drift-Aware Hybrid (static stack)`
 - `Drift-Adaptive Hybrid` as the deployment-time upgrade
 
-The key novelty upgrade is not just stacking, but online drift adaptation. On the external `CICIDS2017` holdout, the static hybrid scores `61.33%` weighted `F1`, while the online `Drift-Adaptive Hybrid` improves that to `65.64%` without retraining the base detectors.
+The key novelty upgrade is not just stacking, but online drift adaptation. On the full external `CICIDS2017` corpus, the static hybrid scores `61.35%` weighted `F1`, while the online `Drift-Adaptive Hybrid` improves that to `68.69%` without retraining the base detectors.
 
 ## Problem Statement
 
@@ -25,7 +25,7 @@ Traditional IDS engines are strong for deterministic known signatures, but they 
 | --- | --- | --- | --- |
 | `UNSW-NB15` | `257,673` | official `82,332` train / `175,341` test | `10` attack families collapsed to binary attack detection |
 | `NSL-KDD` | `148,517` | official `125,973` train / `22,544` test | `40` symbolic labels collapsed to binary attack detection |
-| `CICIDS2017` | `2,830,743` | external holdout for transfer evaluation | `15` traffic labels |
+| `CICIDS2017` | `2,830,743` | full external corpus for transfer evaluation | `15` traffic labels |
 
 Supporting materials:
 
@@ -79,7 +79,8 @@ Source files:
 Run the upgraded research pipeline with:
 
 ```bash
-bash run_training.sh --epochs 1 --batch-size 128 --rf-trees 60 --cicids-sample-size 5000
+bash run_training.sh --epochs 1 --batch-size 128 --rf-trees 60 --cicids-sample-size 0
+python3 evaluation/run_full_transfer_evaluation.py
 ```
 
 The full scripted benchmark trains all base detectors and evaluates:
@@ -116,11 +117,11 @@ The full scripted benchmark trains all base detectors and evaluates:
 
 | Model | Accuracy | Precision | Recall | F1 Score | ROC AUC | Latency (ms/flow) |
 | --- | --- | --- | --- | --- | --- | --- |
-| LSTM | 80.30% | 64.48% | 80.30% | 71.53% | 0.2901 | 0.0718 |
-| Transformer | 80.16% | 64.46% | 80.16% | 71.46% | 0.4974 | 0.0809 |
-| Drift-Adaptive Hybrid | 67.28% | 64.14% | 67.28% | 65.64% | 0.4537 | 0.4343 |
-| Random Forest | 58.48% | 65.82% | 58.48% | 61.59% | 0.4681 | 0.0062 |
-| Signature IDS | 53.42% | 67.84% | 53.42% | 58.14% | 0.4643 | 0.0004 |
+| LSTM | 80.30% | 64.48% | 80.30% | 71.53% | 0.2904 | 0.0406 |
+| Transformer | 80.23% | 64.58% | 80.23% | 71.49% | 0.4886 | 0.0762 |
+| Drift-Adaptive Hybrid | 74.26% | 64.13% | 74.26% | 68.69% | 0.4041 | 0.2630 |
+| Random Forest | 58.51% | 65.55% | 58.51% | 61.53% | 0.4621 | 0.0060 |
+| Signature IDS | 53.34% | 68.33% | 53.34% | 58.09% | 0.4716 | 0.0004 |
 
 ### Online Drift Adaptation
 
@@ -128,12 +129,12 @@ The strongest new result is the deployment-time adaptation ablation on the exter
 
 | Variant | Accuracy | Precision | Recall | F1 Score | ROC AUC |
 | --- | --- | --- | --- | --- | --- |
-| Static Hybrid | 57.52% | 67.44% | 57.52% | 61.33% | 0.4840 |
-| Online Drift-Adaptive Hybrid | 67.28% | 64.14% | 67.28% | 65.64% | 0.4537 |
+| Static Hybrid | 57.65% | 67.10% | 57.65% | 61.35% | 0.4755 |
+| Online Drift-Adaptive Hybrid | 74.26% | 64.13% | 74.26% | 68.69% | 0.4041 |
 
-This is a `+4.31` weighted `F1` gain over the static hybrid under external drift, without retraining the already-trained base models.
+This is a `+7.34` weighted `F1` gain over the static hybrid under full-corpus external drift, without retraining the already-trained base models.
 
-Measured average inference latency on the transfer sample rises from `0.1662 ms/flow` for the static hybrid to `0.4343 ms/flow` for the online controller, so the gain is robustness under shift rather than raw speed.
+Measured average inference latency rises from `0.1240 ms/flow` for the static hybrid to `0.2630 ms/flow` for the online controller, so the gain is robustness under shift rather than raw speed.
 
 Artifacts:
 
@@ -145,7 +146,7 @@ Artifacts:
 
 - The static `Drift-Aware Hybrid` remains best on the official `UNSW-NB15` split.
 - `LSTM` remains the strongest model on `NSL-KDD` and the external transfer benchmark.
-- The new novelty result is that online drift adaptation materially improves the hybrid under external shift.
+- The new novelty result is that online drift adaptation materially improves the hybrid under full external shift.
 - Cross-dataset generalization is still difficult, but the adaptation layer recovers part of that gap.
 
 ## Comparison with Traditional IDS
@@ -154,7 +155,7 @@ This repository includes a quantitative rule-based baseline instead of a purely 
 
 - On `UNSW-NB15`, `Signature IDS` reaches `55.13%` weighted `F1`, versus `90.72%` for the static hybrid.
 - On `NSL-KDD`, `Signature IDS` reaches `49.47%` weighted `F1`, versus `81.01%` for `LSTM`.
-- On the external `CICIDS2017` transfer holdout, `Signature IDS` reaches `58.14%` weighted `F1`, the static hybrid reaches `61.33%`, the online `Drift-Adaptive Hybrid` reaches `65.64%`, and `LSTM` remains best at `71.53%`.
+- On the full external `CICIDS2017` corpus, `Signature IDS` reaches `58.09%` weighted `F1`, the static hybrid reaches `61.35%`, the online `Drift-Adaptive Hybrid` reaches `68.69%`, and `LSTM` remains best at `71.53%`.
 - The rule baseline is still the fastest detector: on `UNSW-NB15` at batch size `1024`, it sustains about `1.28M` flows/s.
 
 Because these public benchmarks are distributed as flow records rather than raw packet payloads, the traditional baseline is implemented as a transparent flow-signature IDS instead of direct `Snort` or `Suricata` packet replay.
@@ -163,7 +164,7 @@ Because these public benchmarks are distributed as flow records rather than raw 
 
 The repo now goes beyond a basic benchmark in four ways:
 
-- `cross-dataset transfer` from two training corpora into an external holdout
+- `cross-dataset transfer` from two training corpora into the full external `CICIDS2017` corpus
 - `online drift adaptation` through the new `Drift-Adaptive Hybrid`
 - `online latency under load` across multiple batch sizes
 - `explainability validated by ablation` using feature-importance interventions

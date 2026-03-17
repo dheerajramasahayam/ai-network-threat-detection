@@ -206,19 +206,27 @@ class DriftAwareHybridDetector:
         raw_df: pd.DataFrame,
         X_scaled: np.ndarray,
         batch_size: int = 512,
-    ) -> np.ndarray:
+        state: dict[str, float | int] | None = None,
+        return_state: bool = False,
+    ) -> np.ndarray | tuple[np.ndarray, dict[str, float | int]]:
         if not self.fitted:
             raise RuntimeError("Call fit() before predict_proba().")
 
         probabilities = []
         trace_rows = []
-        ema_drift = self.drift_stats["normalized_median"]
-        rolling_attack_rate = self.source_attack_rate
+        if state is None:
+            ema_drift = self.drift_stats["normalized_median"]
+            rolling_attack_rate = self.source_attack_rate
+            stream_offset = 0
+        else:
+            ema_drift = float(state.get("ema_drift", self.drift_stats["normalized_median"]))
+            rolling_attack_rate = float(state.get("rolling_attack_rate", self.source_attack_rate))
+            stream_offset = int(state.get("next_offset", 0))
 
-        for start in range(0, len(raw_df), batch_size):
-            stop = min(start + batch_size, len(raw_df))
-            raw_batch = raw_df.iloc[start:stop].reset_index(drop=True)
-            scaled_batch = X_scaled[start:stop]
+        for local_start in range(0, len(raw_df), batch_size):
+            local_stop = min(local_start + batch_size, len(raw_df))
+            raw_batch = raw_df.iloc[local_start:local_stop].reset_index(drop=True)
+            scaled_batch = X_scaled[local_start:local_stop]
 
             components, drift_prob = self._component_probabilities(raw_batch, scaled_batch)
             batch_drift = float(np.mean(drift_prob))
@@ -249,8 +257,8 @@ class DriftAwareHybridDetector:
 
             trace_rows.append(
                 {
-                    "batch_start": start,
-                    "batch_end": stop,
+                    "batch_start": stream_offset + local_start,
+                    "batch_end": stream_offset + local_stop,
                     "mean_drift_score": round(batch_drift, 4),
                     "ema_drift_score": round(ema_drift, 4),
                     "adaptation_alpha": round(alpha, 4),
@@ -265,7 +273,15 @@ class DriftAwareHybridDetector:
             )
 
         self.last_adaptation_trace = pd.DataFrame(trace_rows)
-        return np.vstack(probabilities)
+        probability_array = np.vstack(probabilities)
+        next_state = {
+            "ema_drift": float(ema_drift),
+            "rolling_attack_rate": float(rolling_attack_rate),
+            "next_offset": int(stream_offset + len(raw_df)),
+        }
+        if return_state:
+            return probability_array, next_state
+        return probability_array
 
     def predict(self, raw_df: pd.DataFrame, X_scaled: np.ndarray) -> np.ndarray:
         return (self.predict_proba(raw_df, X_scaled)[:, 1] >= 0.5).astype(int)

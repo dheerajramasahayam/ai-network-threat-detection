@@ -97,6 +97,22 @@ def _load_cicids_canonical(path: str | Path) -> pd.DataFrame:
     return _to_canonical(df, label, "cicids2017")
 
 
+def iter_cicids_canonical_chunks(path: str | Path, chunksize: int = 100_000):
+    usecols = list(_CICIDS_COL_MAP.keys())
+    reader = pd.read_csv(
+        path,
+        usecols=lambda c: c.strip() in usecols,
+        low_memory=False,
+        chunksize=chunksize,
+    )
+    for chunk in reader:
+        chunk.columns = chunk.columns.str.strip()
+        rename_map = {key: value for key, value in _CICIDS_COL_MAP.items() if key in chunk.columns}
+        chunk = chunk.rename(columns=rename_map)
+        label = (chunk["Label"].astype(str).str.strip().str.upper() != "BENIGN").astype(int)
+        yield _to_canonical(chunk, label, "cicids2017")
+
+
 def _load_unsw_canonical(path: str | Path) -> pd.DataFrame:
     columns = [
         "dur", "spkts", "dpkts", "sbytes", "dbytes", "sloss", "dloss", "sload",
