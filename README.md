@@ -2,7 +2,7 @@
 
 ## Abstract
 
-This repository is organized as a reproducible research project for enterprise network-threat detection across multiple public benchmarks. It aligns `UNSW-NB15`, `NSL-KDD`, and `CICIDS2017` into a shared 41-feature flow representation, compares standard IDS and ML baselines, and adds an online drift-adaptive controller on top of a hybrid ensemble.
+This repository is organized as a reproducible research project for enterprise network-threat detection across multiple public benchmarks. It aligns `UNSW-NB15`, `NSL-KDD`, `CICIDS2017`, and `CSE-CIC-IDS2018` into a shared 41-feature flow representation, compares standard IDS and ML baselines, and adds an online drift-adaptive controller on top of a hybrid ensemble.
 
 The benchmark now studies six configurations:
 
@@ -13,7 +13,7 @@ The benchmark now studies six configurations:
 - `Drift-Aware Hybrid (static stack)`
 - `Drift-Adaptive Hybrid` as the deployment-time upgrade
 
-The key novelty upgrade is not just stacking, but online drift adaptation. On the full external `CICIDS2017` corpus, the static hybrid scores `61.35%` weighted `F1`, while the online `Drift-Adaptive Hybrid` improves that to `68.69%` without retraining the base detectors.
+The key novelty upgrade is not just stacking, but online drift adaptation plus a formal drift-detector study. On the full external `CICIDS2017` corpus, the static hybrid scores `61.35%` weighted `F1`, while the online `Drift-Adaptive Hybrid` improves that to `68.69%` without retraining the base detectors. A formal comparison between `Isolation Forest`, `ADWIN`, `DDM`, and `Page-Hinkley` shows that `Isolation Forest` is the strongest detector in this benchmark at `70.58%` post-adaptation weighted `F1` with `0` source-domain false positives.
 
 ## Problem Statement
 
@@ -26,6 +26,7 @@ Traditional IDS engines are strong for deterministic known signatures, but they 
 | `UNSW-NB15` | `257,673` | official `82,332` train / `175,341` test | `10` attack families collapsed to binary attack detection |
 | `NSL-KDD` | `148,517` | official `125,973` train / `22,544` test | `40` symbolic labels collapsed to binary attack detection |
 | `CICIDS2017` | `2,830,743` | full external corpus for transfer evaluation | `15` traffic labels |
+| `CSE-CIC-IDS2018` | `505,156` cleaned rows | second external corpus for transfer evaluation | `14+` traffic labels |
 
 Supporting materials:
 
@@ -43,6 +44,15 @@ The proposed method has two layers:
 2. `Drift-Adaptive Hybrid` derives stable and stressed ensemble-weight regimes offline, then interpolates between them online as the observed drift score rises in the live stream.
 
 This makes the contribution stronger than a pure stacking benchmark because the system adapts at inference time instead of staying fixed after training.
+
+The deployed ensemble follows:
+
+```text
+p(x_t) = Σ w_i(t) · M_i(x_t)
+w_i(t) ∝ (1 − α_t) · w_i(stable) + α_t · w_i(stressed)
+```
+
+where `α_t` is the online drift coefficient. The repo now also includes an explicit detector-ablation study comparing `Isolation Forest`, `ADWIN`, `DDM`, and `Page-Hinkley` under the same adaptive controller.
 
 ## Model Architectures
 
@@ -81,6 +91,9 @@ Run the upgraded research pipeline with:
 ```bash
 bash run_training.sh --epochs 1 --batch-size 128 --rf-trees 60 --cicids-sample-size 0
 python3 evaluation/run_full_transfer_evaluation.py
+python3 evaluation/run_cse_cic_ids2018_transfer_evaluation.py
+python3 evaluation/run_drift_detector_study.py
+python3 evaluation/run_failure_case_analysis.py
 python3 evaluation/realtime_streaming_evaluation.py --source file --chunksize 100000 --max-chunks 5
 ```
 
@@ -89,9 +102,12 @@ The full scripted benchmark trains all base detectors and evaluates:
 1. full official `UNSW-NB15`
 2. full official `NSL-KDD`
 3. external transfer from `UNSW-NB15 + NSL-KDD` into `CICIDS2017`
-4. online drift adaptation on the external stream
-5. latency-under-load and explainability-ablation artifacts
-6. real-time streaming evaluation with drift timeline output
+4. second external transfer into `CSE-CIC-IDS2018`
+5. formal drift detector comparison
+6. online drift adaptation on the external stream
+7. latency-under-load and explainability-ablation artifacts
+8. family-level failure analysis on the dominant external attack types
+9. real-time streaming evaluation with drift timeline output
 
 For streaming-style ingestion from Kafka:
 
@@ -155,6 +171,66 @@ Artifacts:
 - `results/transfer_unsw_nsl_to_cicids_online_drift_adaptation.md`
 - `results/transfer_unsw_nsl_to_cicids_online_drift_adaptation.png`
 
+### Formal Drift Detector Study
+
+The repo now includes a direct comparison of drift detectors under the same adaptive hybrid controller:
+
+| Drift Detector | Detection Delay (windows) | False Positives | F1 After Adaptation |
+| --- | --- | --- | --- |
+| Isolation Forest | 2 | 0 | 70.58 |
+| DDM | 0 | 0 | 69.77 |
+| Page-Hinkley | 0 | 0 | 69.77 |
+| ADWIN | not detected | 0 | 62.93 |
+
+This removes the obvious reviewer criticism of “why this detector?” and also preserves a practical distinction: `Isolation Forest` remains label-free, while the error-stream detectors need post-label feedback.
+
+Artifacts:
+
+- `results/drift_detector_study.csv`
+- `results/drift_detector_study.md`
+- `results/drift_detector_study.png`
+
+### Additional External Evaluation: `CSE-CIC-IDS2018`
+
+The repo now includes a second modern external dataset. After removing `59` repeated header rows from the local copy, the cleaned benchmark contains `505,156` rows (`50,000` benign, `455,156` attack).
+
+| Model | Accuracy | F1 Score | ROC AUC |
+| --- | --- | --- | --- |
+| Signature IDS | 57.95% | 66.37% | 0.5573 |
+| Static Hybrid | 22.55% | 27.91% | 0.5025 |
+| Random Forest | 22.45% | 27.58% | 0.5353 |
+| Drift-Adaptive Hybrid | 11.89% | 7.39% | 0.3870 |
+| Transformer | 9.88% | 2.06% | 0.2637 |
+| LSTM | 9.90% | 1.78% | 0.2334 |
+
+This is a deliberately hard result. The signature baseline becomes the strongest model on this corpus, which makes the paper’s transfer claims more credible because it shows where the learned source-domain models still fail.
+
+Artifacts:
+
+- `results/transfer_unsw_nsl_to_cse_cic_ids2018_model_comparison.md`
+- `results/transfer_unsw_nsl_to_cse_cic_ids2018_online_drift_adaptation.md`
+- `results/transfer_unsw_nsl_to_cse_cic_ids2018_summary.json`
+
+### Failure Analysis
+
+The repo now includes attack-family failure analysis on the dominant `CICIDS2017` attack types, evaluated as binary family-vs-benign tasks:
+
+| Attack Type | Support | LSTM F1 | Drift-Adaptive Hybrid F1 |
+| --- | --- | --- | --- |
+| FTP-Patator | 7,938 | 0.0000 | 0.1793 |
+| SSH-Patator | 5,897 | 0.0000 | 0.0194 |
+| DoS GoldenEye | 10,293 | 0.0000 | 0.0015 |
+| DDoS | 128,027 | 0.0000 | 0.0010 |
+| DoS Hulk | 231,073 | 0.0000 | 0.0008 |
+| PortScan | 158,930 | 0.0000 | 0.0000 |
+
+This result is intentionally not flattering: the source-trained `LSTM` collapses on all six dominant external attack families, and the adaptive hybrid only recovers meaningful signal on `FTP-Patator` plus a smaller amount on `SSH-Patator`. That makes the paper stronger because it documents exactly where transfer still breaks.
+
+Artifacts:
+
+- `results/transfer_unsw_nsl_to_cicids_failure_case_analysis.md`
+- `results/transfer_unsw_nsl_to_cicids_failure_case_analysis.png`
+
 ### Real-Time Streaming Evaluation
 
 The repository now includes an explicit real-time evaluation loop that can run either over file-backed streamed chunks or a Kafka topic. On the full file-backed `CICIDS2017` stream, the online `Drift-Adaptive Hybrid` processed `2,830,743` rows across `29` sequential windows and matched the full-corpus transfer score: `74.26%` accuracy, `68.69%` weighted `F1`, and `0.4041` `ROC AUC`.
@@ -172,6 +248,8 @@ Artifacts:
 - The static `Drift-Aware Hybrid` remains best on the official `UNSW-NB15` split.
 - `LSTM` remains the strongest model on `NSL-KDD` and the external transfer benchmark.
 - The new novelty result is that online drift adaptation materially improves the hybrid under full external shift.
+- `Isolation Forest` is now justified empirically as the strongest drift detector in this benchmark.
+- The second external `CSE-CIC-IDS2018` evaluation shows that source-only learned transfer can still collapse on newer corpora.
 - Cross-dataset generalization is still difficult, but the adaptation layer recovers part of that gap.
 
 ## Comparison with Traditional IDS
@@ -181,6 +259,7 @@ This repository includes a quantitative rule-based baseline instead of a purely 
 - On `UNSW-NB15`, `Signature IDS` reaches `55.13%` weighted `F1`, versus `90.72%` for the static hybrid.
 - On `NSL-KDD`, `Signature IDS` reaches `49.47%` weighted `F1`, versus `81.01%` for `LSTM`.
 - On the full external `CICIDS2017` corpus, `Signature IDS` reaches `58.09%` weighted `F1`, the static hybrid reaches `61.35%`, the online `Drift-Adaptive Hybrid` reaches `68.69%`, and `LSTM` remains best at `71.53%`.
+- On cleaned `CSE-CIC-IDS2018`, `Signature IDS` reaches `66.37%` weighted `F1` and is the strongest model, which highlights that some external corpora remain more rule-aligned than source-trained learned detectors.
 - The rule baseline is still the fastest detector: on `UNSW-NB15` at batch size `1024`, it sustains about `1.28M` flows/s.
 
 Because these public benchmarks are distributed as flow records rather than raw packet payloads, the traditional baseline is implemented as a transparent flow-signature IDS instead of direct `Snort` or `Suricata` packet replay.
@@ -190,9 +269,23 @@ Because these public benchmarks are distributed as flow records rather than raw 
 The repo now goes beyond a basic benchmark in four ways:
 
 - `cross-dataset transfer` from two training corpora into the full external `CICIDS2017` corpus
+- `second external validation` on cleaned `CSE-CIC-IDS2018`
 - `online drift adaptation` through the new `Drift-Adaptive Hybrid`
+- `formal drift detector comparison` across `Isolation Forest`, `ADWIN`, `DDM`, and `Page-Hinkley`
 - `online latency under load` across multiple batch sizes
+- `failure-case analysis` on dominant external attack families
 - `explainability validated by ablation` using feature-importance interventions
+
+## Production Deployment Scenario
+
+The paper now includes a deployment architecture figure at `paper/deployment_architecture.png`. The scenario models:
+
+- enterprise traffic mirrors
+- flow collection through `Zeek / NetFlow`
+- `Kafka` or file-backed stream ingestion
+- canonical 41-feature extraction
+- low-latency `Drift-Adaptive Hybrid` inference
+- alert handoff to `SIEM / SOC`
 
 ## Demo
 

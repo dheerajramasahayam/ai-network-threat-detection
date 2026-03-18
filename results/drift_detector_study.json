@@ -1,0 +1,39 @@
+{
+  "window_size": 50000,
+  "source_windows": 5,
+  "external_windows": 57,
+  "results": [
+    {
+      "Drift Detector": "Isolation Forest",
+      "Detection Delay (windows)": 2,
+      "False Positives": 0,
+      "F1 After Adaptation": 70.58,
+      "Accuracy After Adaptation": 75.95,
+      "ROC AUC": 0.4746
+    },
+    {
+      "Drift Detector": "ADWIN",
+      "Detection Delay (windows)": "not_detected",
+      "False Positives": 0,
+      "F1 After Adaptation": 62.93,
+      "Accuracy After Adaptation": 61.15,
+      "ROC AUC": 0.4563
+    },
+    {
+      "Drift Detector": "DDM",
+      "Detection Delay (windows)": 0,
+      "False Positives": 0,
+      "F1 After Adaptation": 69.77,
+      "Accuracy After Adaptation": 75.57,
+      "ROC AUC": 0.4717
+    },
+    {
+      "Drift Detector": "Page-Hinkley",
+      "Detection Delay (windows)": 0,
+      "False Positives": 0,
+      "F1 After Adaptation": 69.77,
+      "Accuracy After Adaptation": 75.57,
+      "ROC AUC": 0.4717
+    }
+  ]
+}

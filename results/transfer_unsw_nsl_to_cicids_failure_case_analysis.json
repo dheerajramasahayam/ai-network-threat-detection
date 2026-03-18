@@ -1,0 +1,78 @@
+{
+  "attack_families": [
+    "DoS Hulk",
+    "PortScan",
+    "DDoS",
+    "DoS GoldenEye",
+    "FTP-Patator",
+    "SSH-Patator"
+  ],
+  "results": [
+    {
+      "Attack Type": "DoS Hulk",
+      "Support": 231073,
+      "LSTM Precision": 0.0,
+      "LSTM Recall": 0.0,
+      "LSTM F1": 0.0,
+      "Drift-Adaptive Hybrid Precision": 0.0173,
+      "Drift-Adaptive Hybrid Recall": 0.0004,
+      "Drift-Adaptive Hybrid F1": 0.0008,
+      "Hybrid Gain": 0.0008
+    },
+    {
+      "Attack Type": "PortScan",
+      "Support": 158930,
+      "LSTM Precision": 0.0,
+      "LSTM Recall": 0.0,
+      "LSTM F1": 0.0,
+      "Drift-Adaptive Hybrid Precision": 0.0,
+      "Drift-Adaptive Hybrid Recall": 0.0,
+      "Drift-Adaptive Hybrid F1": 0.0,
+      "Hybrid Gain": 0.0
+    },
+    {
+      "Attack Type": "DDoS",
+      "Support": 128027,
+      "LSTM Precision": 0.0,
+      "LSTM Recall": 0.0,
+      "LSTM F1": 0.0,
+      "Drift-Adaptive Hybrid Precision": 0.0141,
+      "Drift-Adaptive Hybrid Recall": 0.0005,
+      "Drift-Adaptive Hybrid F1": 0.001,
+      "Hybrid Gain": 0.001
+    },
+    {
+      "Attack Type": "DoS GoldenEye",
+      "Support": 10293,
+      "LSTM Precision": 0.0,
+      "LSTM Recall": 0.0,
+      "LSTM F1": 0.0,
+      "Drift-Adaptive Hybrid Precision": 0.001,
+      "Drift-Adaptive Hybrid Recall": 0.0028,
+      "Drift-Adaptive Hybrid F1": 0.0015,
+      "Hybrid Gain": 0.0015
+    },
+    {
+      "Attack Type": "FTP-Patator",
+      "Support": 7938,
+      "LSTM Precision": 0.0,
+      "LSTM Recall": 0.0,
+      "LSTM F1": 0.0,
+      "Drift-Adaptive Hybrid Precision": 0.1092,
+      "Drift-Adaptive Hybrid Recall": 0.5005,
+      "Drift-Adaptive Hybrid F1": 0.1793,
+      "Hybrid Gain": 0.1793
+    },
+    {
+      "Attack Type": "SSH-Patator",
+      "Support": 5897,
+      "LSTM Precision": 0.0,
+      "LSTM Recall": 0.0,
+      "LSTM F1": 0.0,
+      "Drift-Adaptive Hybrid Precision": 0.0113,
+      "Drift-Adaptive Hybrid Recall": 0.0685,
+      "Drift-Adaptive Hybrid F1": 0.0194,
+      "Hybrid Gain": 0.0194
+    }
+  ]
+}

@@ -1,0 +1,3 @@
+Variant,Accuracy,Precision,Recall,F1 Score,ROC AUC,Latency (ms/flow)
+Static Hybrid,22.55,74.92,22.55,27.91,0.5025,0.1631
+Online Drift-Adaptive Hybrid,11.89,68.53,11.89,7.39,0.387,0.342

@@ -9,7 +9,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import FunctionTransformer, StandardScaler
 
-from src.preprocessing import FEATURE_COLUMNS, _CICIDS_COL_MAP
+from src.preprocessing import FEATURE_COLUMNS, _CICIDS_COL_MAP, _CSE_CIC_IDS2018_COL_MAP
 
 RANDOM_STATE = 42
 FLOAT32_CLIP = np.finfo(np.float32).max / 1024.0
@@ -111,6 +111,38 @@ def iter_cicids_canonical_chunks(path: str | Path, chunksize: int = 100_000):
         chunk = chunk.rename(columns=rename_map)
         label = (chunk["Label"].astype(str).str.strip().str.upper() != "BENIGN").astype(int)
         yield _to_canonical(chunk, label, "cicids2017")
+
+
+def _load_cse_cic_ids2018_canonical(path: str | Path) -> pd.DataFrame:
+    usecols = list(_CSE_CIC_IDS2018_COL_MAP.keys())
+    df = pd.read_csv(path, usecols=lambda c: c.strip() in usecols, low_memory=False)
+    df.columns = df.columns.str.strip()
+    if "Label" in df.columns:
+        df = df[df["Label"].astype(str).str.strip().str.upper() != "LABEL"].copy()
+    rename_map = {key: value for key, value in _CSE_CIC_IDS2018_COL_MAP.items() if key in df.columns}
+    df = df.rename(columns=rename_map)
+    label = (df["Label"].astype(str).str.strip().str.upper() != "BENIGN").astype(int)
+    return _to_canonical(df, label, "cse_cic_ids2018")
+
+
+def iter_cse_cic_ids2018_canonical_chunks(path: str | Path, chunksize: int = 100_000):
+    usecols = list(_CSE_CIC_IDS2018_COL_MAP.keys())
+    reader = pd.read_csv(
+        path,
+        usecols=lambda c: c.strip() in usecols,
+        low_memory=False,
+        chunksize=chunksize,
+    )
+    for chunk in reader:
+        chunk.columns = chunk.columns.str.strip()
+        if "Label" in chunk.columns:
+            chunk = chunk[chunk["Label"].astype(str).str.strip().str.upper() != "LABEL"].copy()
+        if chunk.empty:
+            continue
+        rename_map = {key: value for key, value in _CSE_CIC_IDS2018_COL_MAP.items() if key in chunk.columns}
+        chunk = chunk.rename(columns=rename_map)
+        label = (chunk["Label"].astype(str).str.strip().str.upper() != "BENIGN").astype(int)
+        yield _to_canonical(chunk, label, "cse_cic_ids2018")
 
 
 def _load_unsw_canonical(path: str | Path) -> pd.DataFrame:

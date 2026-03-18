@@ -82,6 +82,52 @@ _CICIDS_COL_MAP = {
     'Label':                        'Label',
 }
 
+# CSE-CIC-IDS2018 compact column names → canonical names
+_CSE_CIC_IDS2018_COL_MAP = {
+    'Flow Duration':           'flow_duration',
+    'Tot Fwd Pkts':            'total_fwd_packets',
+    'Tot Bwd Pkts':            'total_bwd_packets',
+    'TotLen Fwd Pkts':         'total_len_fwd_packets',
+    'TotLen Bwd Pkts':         'total_len_bwd_packets',
+    'Fwd Pkt Len Max':         'fwd_packet_len_max',
+    'Fwd Pkt Len Min':         'fwd_packet_len_min',
+    'Fwd Pkt Len Mean':        'fwd_packet_len_mean',
+    'Bwd Pkt Len Max':         'bwd_packet_len_max',
+    'Bwd Pkt Len Min':         'bwd_packet_len_min',
+    'Bwd Pkt Len Mean':        'bwd_packet_len_mean',
+    'Flow Byts/s':             'flow_bytes_s',
+    'Flow Pkts/s':             'flow_packets_s',
+    'Flow IAT Mean':           'flow_iat_mean',
+    'Flow IAT Std':            'flow_iat_std',
+    'Fwd IAT Tot':             'fwd_iat_total',
+    'Bwd IAT Tot':             'bwd_iat_total',
+    'Fwd PSH Flags':           'fwd_psh_flags',
+    'Bwd PSH Flags':           'bwd_psh_flags',
+    'Fwd Header Len':          'fwd_header_len',
+    'Bwd Header Len':          'bwd_header_len',
+    'Fwd Pkts/s':              'fwd_packets_s',
+    'Bwd Pkts/s':              'bwd_packets_s',
+    'Pkt Len Min':             'min_packet_len',
+    'Pkt Len Max':             'max_packet_len',
+    'Pkt Len Mean':            'packet_len_mean',
+    'Pkt Len Std':             'packet_len_std',
+    'Pkt Len Var':             'packet_len_variance',
+    'FIN Flag Cnt':            'fin_flag_cnt',
+    'SYN Flag Cnt':            'syn_flag_cnt',
+    'RST Flag Cnt':            'rst_flag_cnt',
+    'PSH Flag Cnt':            'psh_flag_cnt',
+    'ACK Flag Cnt':            'ack_flag_cnt',
+    'URG Flag Cnt':            'urg_flag_cnt',
+    'Pkt Size Avg':            'avg_packet_size',
+    'Fwd Seg Size Avg':        'avg_fwd_seg_size',
+    'Bwd Seg Size Avg':        'avg_bwd_seg_size',
+    'Init Fwd Win Byts':       'init_win_bytes_fwd',
+    'Init Bwd Win Byts':       'init_win_bytes_bwd',
+    'Fwd Act Data Pkts':       'act_data_pkt_fwd',
+    'Fwd Seg Size Min':        'min_seg_size_fwd',
+    'Label':                   'Label',
+}
+
 
 def load_dataset(path: str) -> pd.DataFrame:
     """
