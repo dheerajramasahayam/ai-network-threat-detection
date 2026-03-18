@@ -1,6 +1,6 @@
 # Real-World Packet Replay Case Study
 
-This case study replays the local `RTN_traffic_dataset.csv` export from the paired packet capture `RealTimeNetworkTrafficCapture.pcapng`.
+This case study replays the local `RTN_traffic_dataset.csv` export from the paired packet capture `RealTimeNetworkTrafficCapture.pcapng`. This trace was collected from a controlled internal lab environment simulating enterprise traffic.
 
 - Packet rows: `221253`
 - Aggregated one-second bidirectional flow windows: `201`

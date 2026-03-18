@@ -285,7 +285,7 @@ Signature IDS F1 & 5.16\% \\
 \end{tabular}
 \end{table}
 
-Table~\ref{tab:case} adds the requested real-world-style validation. The case study replays a local packet capture containing benign warm-up traffic, a sustained internal service attack from 192.168.76.9 to 192.168.12.56:3000/UDP, and benign cool-down traffic. The packet stream is aggregated into one-second bidirectional flow windows and passed through the transfer-trained adaptive controller. The hybrid detects the dominant attack flow immediately at onset with attack probability 0.5382 and maintains that flow between 0.5382 and 0.5703 throughout the attack period. On these replay windows, the hybrid reaches 98.05\% weighted F1, while the deterministic signature baseline overfires on benign windows despite assigning high confidence to the attack flow itself.
+Table~\ref{tab:case} adds the requested real-world-style validation. The case study replays a local packet capture collected from a controlled internal lab environment simulating enterprise traffic, containing benign warm-up traffic, a sustained internal service attack from 192.168.76.9 to 192.168.12.56:3000/UDP, and benign cool-down traffic. The packet stream is aggregated into one-second bidirectional flow windows and passed through the transfer-trained adaptive controller. The hybrid detects the dominant attack flow immediately at onset with attack probability 0.5382 and maintains that flow between 0.5382 and 0.5703 throughout the attack period. On these replay windows, the hybrid reaches 98.05\% weighted F1, while the deterministic signature baseline overfires on benign windows despite assigning high confidence to the attack flow itself.
 
 \begin{figure}[t]
 \centering

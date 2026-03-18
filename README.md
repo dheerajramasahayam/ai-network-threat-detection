@@ -240,6 +240,8 @@ The repo now includes a replayed packet-capture validation using the local pair:
 - `dataset/raw/new_2026/realtime_ids/RTN_traffic_dataset.csv`
 - `dataset/raw/new_2026/realtime_ids/RealTimeNetworkTrafficCapture.pcapng`
 
+This trace was collected from a controlled internal lab environment simulating enterprise traffic.
+
 The runner aggregates the packet trace into one-second bidirectional flow windows and replays them through the transfer-trained adaptive hybrid:
 
 ```bash
