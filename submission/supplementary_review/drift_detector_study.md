@@ -1,0 +1,12 @@
+# Drift Detector Comparison Study
+
+Source windows come from the combined UNSW-NB15 + NSL-KDD source-domain corpus. External windows come from the full CICIDS2017 corpus.
+
+Window size: `50000` rows
+
+| Drift Detector | Detection Delay (windows) | False Positives | F1 After Adaptation | Accuracy After Adaptation | ROC AUC |
+| --- | --- | --- | --- | --- | --- |
+| Isolation Forest | 2 | 0 | 70.58 | 75.95 | 0.4746 |
+| DDM | 0 | 0 | 69.77 | 75.57 | 0.4717 |
+| Page-Hinkley | 0 | 0 | 69.77 | 75.57 | 0.4717 |
+| ADWIN | not_detected | 0 | 62.93 | 61.15 | 0.4563 |

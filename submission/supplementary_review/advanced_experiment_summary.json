@@ -1,0 +1,327 @@
+{
+  "primary_official_split": {
+    "name": "UNSW-NB15 Official",
+    "train_rows": 82332,
+    "test_rows": 175341,
+    "train_distribution": {
+      "0": 31450,
+      "1": 38532
+    },
+    "test_distribution": {
+      "0": 56000,
+      "1": 119341
+    },
+    "feature_count": 41,
+    "feature_names": [
+      "flow_duration",
+      "total_fwd_packets",
+      "total_bwd_packets",
+      "total_len_fwd_packets",
+      "total_len_bwd_packets",
+      "fwd_packet_len_max",
+      "fwd_packet_len_min",
+      "fwd_packet_len_mean",
+      "bwd_packet_len_max",
+      "bwd_packet_len_min",
+      "bwd_packet_len_mean",
+      "flow_bytes_s",
+      "flow_packets_s",
+      "flow_iat_mean",
+      "flow_iat_std",
+      "fwd_iat_total",
+      "bwd_iat_total",
+      "fwd_psh_flags",
+      "bwd_psh_flags",
+      "fwd_header_len",
+      "bwd_header_len",
+      "fwd_packets_s",
+      "bwd_packets_s",
+      "min_packet_len",
+      "max_packet_len",
+      "packet_len_mean",
+      "packet_len_std",
+      "packet_len_variance",
+      "fin_flag_cnt",
+      "syn_flag_cnt",
+      "rst_flag_cnt",
+      "psh_flag_cnt",
+      "ack_flag_cnt",
+      "urg_flag_cnt",
+      "avg_packet_size",
+      "avg_fwd_seg_size",
+      "avg_bwd_seg_size",
+      "init_win_bytes_fwd",
+      "init_win_bytes_bwd",
+      "act_data_pkt_fwd",
+      "min_seg_size_fwd"
+    ]
+  },
+  "secondary_official_split": {
+    "name": "NSL-KDD Official",
+    "train_rows": 125973,
+    "test_rows": 22544,
+    "train_distribution": {
+      "0": 57242,
+      "1": 49835
+    },
+    "test_distribution": {
+      "0": 9711,
+      "1": 12833
+    },
+    "feature_count": 41,
+    "feature_names": [
+      "flow_duration",
+      "total_fwd_packets",
+      "total_bwd_packets",
+      "total_len_fwd_packets",
+      "total_len_bwd_packets",
+      "fwd_packet_len_max",
+      "fwd_packet_len_min",
+      "fwd_packet_len_mean",
+      "bwd_packet_len_max",
+      "bwd_packet_len_min",
+      "bwd_packet_len_mean",
+      "flow_bytes_s",
+      "flow_packets_s",
+      "flow_iat_mean",
+      "flow_iat_std",
+      "fwd_iat_total",
+      "bwd_iat_total",
+      "fwd_psh_flags",
+      "bwd_psh_flags",
+      "fwd_header_len",
+      "bwd_header_len",
+      "fwd_packets_s",
+      "bwd_packets_s",
+      "min_packet_len",
+      "max_packet_len",
+      "packet_len_mean",
+      "packet_len_std",
+      "packet_len_variance",
+      "fin_flag_cnt",
+      "syn_flag_cnt",
+      "rst_flag_cnt",
+      "psh_flag_cnt",
+      "ack_flag_cnt",
+      "urg_flag_cnt",
+      "avg_packet_size",
+      "avg_fwd_seg_size",
+      "avg_bwd_seg_size",
+      "init_win_bytes_fwd",
+      "init_win_bytes_bwd",
+      "act_data_pkt_fwd",
+      "min_seg_size_fwd"
+    ]
+  },
+  "external_transfer_split": {
+    "name": "UNSW+NSL -> CICIDS2017",
+    "train_rows": 208305,
+    "test_rows": 2830743,
+    "train_distribution": {
+      "0": 88691,
+      "1": 88368
+    },
+    "test_distribution": {
+      "0": 2273097,
+      "1": 557646
+    },
+    "feature_count": 41,
+    "feature_names": [
+      "flow_duration",
+      "total_fwd_packets",
+      "total_bwd_packets",
+      "total_len_fwd_packets",
+      "total_len_bwd_packets",
+      "fwd_packet_len_max",
+      "fwd_packet_len_min",
+      "fwd_packet_len_mean",
+      "bwd_packet_len_max",
+      "bwd_packet_len_min",
+      "bwd_packet_len_mean",
+      "flow_bytes_s",
+      "flow_packets_s",
+      "flow_iat_mean",
+      "flow_iat_std",
+      "fwd_iat_total",
+      "bwd_iat_total",
+      "fwd_psh_flags",
+      "bwd_psh_flags",
+      "fwd_header_len",
+      "bwd_header_len",
+      "fwd_packets_s",
+      "bwd_packets_s",
+      "min_packet_len",
+      "max_packet_len",
+      "packet_len_mean",
+      "packet_len_std",
+      "packet_len_variance",
+      "fin_flag_cnt",
+      "syn_flag_cnt",
+      "rst_flag_cnt",
+      "psh_flag_cnt",
+      "ack_flag_cnt",
+      "urg_flag_cnt",
+      "avg_packet_size",
+      "avg_fwd_seg_size",
+      "avg_bwd_seg_size",
+      "init_win_bytes_fwd",
+      "init_win_bytes_bwd",
+      "act_data_pkt_fwd",
+      "min_seg_size_fwd"
+    ]
+  },
+  "external_cicids_rows": 2830743,
+  "results": {
+    "official_unsw": {
+      "Signature IDS": {
+        "accuracy": 0.6806223302022916,
+        "precision": 0.4632467563699972,
+        "recall": 0.6806223302022916,
+        "f1_score": 0.5512800205555255,
+        "roc_auc": 0.7417837459614526,
+        "latency_ms_per_flow": 0.00042177327704469764
+      },
+      "Random Forest": {
+        "accuracy": 0.9046201401839844,
+        "precision": 0.9154610358236421,
+        "recall": 0.9046201401839844,
+        "f1_score": 0.9065395765204685,
+        "roc_auc": 0.9792274864074972,
+        "latency_ms_per_flow": 0.006781365236463444
+      },
+      "LSTM": {
+        "accuracy": 0.7283864013550738,
+        "precision": 0.8366585732522125,
+        "recall": 0.7283864013550738,
+        "f1_score": 0.7360331822674483,
+        "roc_auc": 0.9064519886441853,
+        "latency_ms_per_flow": 0.07798448339949952
+      },
+      "Transformer": {
+        "accuracy": 0.7115449324459197,
+        "precision": 0.8342031132664269,
+        "recall": 0.7115449324459197,
+        "f1_score": 0.7186553771917095,
+        "roc_auc": 0.8799515630929138,
+        "latency_ms_per_flow": 0.10399656152297136
+      },
+      "Drift-Aware Hybrid (Static)": {
+        "accuracy": 0.9053159272503294,
+        "precision": 0.915962591214529,
+        "recall": 0.9053159272503294,
+        "f1_score": 0.9072062105883355,
+        "roc_auc": 0.9815921752433304,
+        "latency_ms_per_flow": 0.18042047119119312
+      }
+    },
+    "official_nsl_kdd": {
+      "Signature IDS": {
+        "accuracy": 0.5465755855216465,
+        "precision": 0.5132116163819257,
+        "recall": 0.5465755855216465,
+        "f1_score": 0.4946765867923987,
+        "roc_auc": 0.3541487378441992,
+        "latency_ms_per_flow": 0.0004216918962166953
+      },
+      "Random Forest": {
+        "accuracy": 0.7771025550035486,
+        "precision": 0.8375204867061555,
+        "recall": 0.7771025550035486,
+        "f1_score": 0.7743909515336246,
+        "roc_auc": 0.9365953946398377,
+        "latency_ms_per_flow": 0.00737126318265761
+      },
+      "LSTM": {
+        "accuracy": 0.8107700496806246,
+        "precision": 0.8522816180717521,
+        "recall": 0.8107700496806246,
+        "f1_score": 0.8101229691762828,
+        "roc_auc": 0.9287856439073322,
+        "latency_ms_per_flow": 0.07429136816483606
+      },
+      "Transformer": {
+        "accuracy": 0.80611249112846,
+        "precision": 0.8504431582974218,
+        "recall": 0.80611249112846,
+        "f1_score": 0.8052250716243292,
+        "roc_auc": 0.9346139871813047,
+        "latency_ms_per_flow": 0.08621362988255517
+      },
+      "Drift-Aware Hybrid (Static)": {
+        "accuracy": 0.7923172462739532,
+        "precision": 0.8451750266753242,
+        "recall": 0.7923172462739532,
+        "f1_score": 0.7905830327218158,
+        "roc_auc": 0.9507717073931437,
+        "latency_ms_per_flow": 0.1844507988290426
+      }
+    },
+    "transfer_unsw_nsl_to_cicids": {
+      "Signature IDS": {
+        "accuracy": 0.5333543172234286,
+        "precision": 0.6833456881100383,
+        "recall": 0.5333543172234286,
+        "f1_score": 0.5808663047277619,
+        "roc_auc": 0.47160744909568153,
+        "latency_ms_per_flow": 0.0004397786455001551
+      },
+      "Random Forest": {
+        "accuracy": 0.585148139552054,
+        "precision": 0.6555391580010301,
+        "recall": 0.5851481395520539,
+        "f1_score": 0.6153417736557404,
+        "roc_auc": 0.46209879384050767,
+        "latency_ms_per_flow": 0.005979939776542172
+      },
+      "LSTM": {
+        "accuracy": 0.8030036637024273,
+        "precision": 0.6448148839195209,
+        "recall": 0.8030036637024273,
+        "f1_score": 0.715267413927943,
+        "roc_auc": 0.2903586880876689,
+        "latency_ms_per_flow": 0.040554334797586
+      },
+      "Transformer": {
+        "accuracy": 0.8022688742849492,
+        "precision": 0.645824179693765,
+        "recall": 0.8022688742849492,
+        "f1_score": 0.7149122891183681,
+        "roc_auc": 0.4885763463751746,
+        "latency_ms_per_flow": 0.07620675993299149
+      },
+      "Drift-Adaptive Hybrid": {
+        "accuracy": 0.7425545166057109,
+        "precision": 0.6413158361896686,
+        "recall": 0.7425545166057109,
+        "f1_score": 0.6869364684858703,
+        "roc_auc": 0.4041427506000495,
+        "latency_ms_per_flow": 0.26295249430556095
+      }
+    }
+  },
+  "best_models": {
+    "official_unsw": "Drift-Aware Hybrid (Static)",
+    "official_nsl_kdd": "LSTM",
+    "transfer_unsw_nsl_to_cicids": "LSTM"
+  },
+  "online_drift_adaptation": {
+    "transfer_unsw_nsl_to_cicids": {
+      "Static Hybrid": {
+        "accuracy": 0.5764680862939519,
+        "precision": 0.6709560702404544,
+        "recall": 0.5764680862939519,
+        "f1_score": 0.6134703138445888,
+        "roc_auc": 0.47546482370979765,
+        "latency_ms_per_flow": 0.12403162971944917
+      },
+      "Online Drift-Adaptive Hybrid": {
+        "accuracy": 0.7425545166057109,
+        "precision": 0.6413158361896686,
+        "recall": 0.7425545166057109,
+        "f1_score": 0.6869364684858703,
+        "roc_auc": 0.4041427506000495,
+        "latency_ms_per_flow": 0.26295249430556095
+      }
+    }
+  }
+}

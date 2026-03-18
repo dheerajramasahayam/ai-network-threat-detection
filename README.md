@@ -22,6 +22,7 @@ This repository is packaged as a paper-first GitHub research release. The main e
 - `paper/ieee_paper.pdf` for the authoritative IEEE-style manuscript
 - `research_paper.pdf` for a root-level mirror of the same PDF
 - `paper/ieee_paper.tex` and `paper/references.bib` for the full LaTeX source
+- `submission/` for a ready-to-upload IEEE submission package
 - `RELEASE.md` for the release inventory, validation steps, and publishing checklist
 - `results/advanced_experiment_summary.json` and the `results/` directory for the measured experiment outputs
 
@@ -377,6 +378,7 @@ This repository includes:
 - `paper/build.sh`
 - `paper/ieee_paper.tex`
 - `research_paper.pdf`
+- `submission/build_submission_assets.sh`
 - `CITATION.cff`
 - `RELEASE.md`
 
@@ -405,6 +407,7 @@ ai-network-threat-detection/
 ├── models/
 ├── notebooks/
 ├── paper/
+├── submission/
 ├── RELEASE.md
 ├── results/
 ├── src/
