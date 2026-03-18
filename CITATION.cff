@@ -7,16 +7,17 @@ abstract: >
   detection. The project compares a traditional flow-signature IDS baseline,
   Random Forest, LSTM, Transformer, a static Drift-Aware Hybrid, and an online
   Drift-Adaptive Hybrid across official UNSW-NB15 and NSL-KDD splits plus
-  external CICIDS2017 transfer evaluation, with latency, explainability, and
-  online drift-adaptation analyses.
+  external CICIDS2017 and CSE-CIC-IDS2018 transfer evaluation, with formal
+  drift-detector comparison, streaming analyses, packet-replay validation,
+  latency, and explainability studies.
 authors:
   - family-names: "Ramasahayam"
     given-names: "Dheeraj"
 repository-code: "https://github.com/dheerajramasahayam/ai-network-threat-detection"
 url: "https://github.com/dheerajramasahayam/ai-network-threat-detection"
 license: "CC-BY-4.0"
-version: "4.0.0"
-date-released: "2026-03-17"
+version: "5.0.0"
+date-released: "2026-03-18"
 keywords:
   - cybersecurity
   - network threat detection
@@ -28,10 +29,13 @@ keywords:
   - cross-dataset transfer
   - concept drift
   - online adaptation
+  - drift detection
+  - streaming intrusion detection
   - explainability
   - UNSW-NB15
   - NSL-KDD
   - CICIDS2017
+  - CSE-CIC-IDS2018
   - intrusion detection
 preferred-citation:
   type: article

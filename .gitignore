@@ -27,6 +27,7 @@ dataset/*.csv
 dataset/raw/
 dataset/processed/*.csv
 dataset/processed/*.parquet
+dataset/merge.py
 
 # OS
 .DS_Store

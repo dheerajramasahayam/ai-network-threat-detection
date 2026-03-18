@@ -2,9 +2,15 @@
 set -euo pipefail
 
 cd "$(dirname "$0")"
+ROOT_DIR="$(cd .. && pwd)"
+
+sync_root_pdf() {
+  cp ieee_paper.pdf "$ROOT_DIR/research_paper.pdf"
+}
 
 if command -v tectonic >/dev/null 2>&1; then
   tectonic ieee_paper.tex --outdir .
+  sync_root_pdf
   exit 0
 fi
 
@@ -22,3 +28,4 @@ pdflatex ieee_paper.tex
 bibtex ieee_paper
 pdflatex ieee_paper.tex
 pdflatex ieee_paper.tex
+sync_root_pdf

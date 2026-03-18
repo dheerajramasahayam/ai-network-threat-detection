@@ -15,6 +15,16 @@ The benchmark now studies six configurations:
 
 The key novelty upgrade is not just stacking, but online drift adaptation plus a formal drift-detector study. On the full external `CICIDS2017` corpus, the static hybrid scores `61.35%` weighted `F1`, while the online `Drift-Adaptive Hybrid` improves that to `68.69%` without retraining the base detectors. A formal comparison between `Isolation Forest`, `ADWIN`, `DDM`, and `Page-Hinkley` shows that `Isolation Forest` is the strongest detector in this benchmark at `70.58%` post-adaptation weighted `F1` with `0` source-domain false positives.
 
+## Release Artifacts
+
+This repository is packaged as a paper-first GitHub research release. The main entry points are:
+
+- `paper/ieee_paper.pdf` for the authoritative IEEE-style manuscript
+- `research_paper.pdf` for a root-level mirror of the same PDF
+- `paper/ieee_paper.tex` and `paper/references.bib` for the full LaTeX source
+- `RELEASE.md` for the release inventory, validation steps, and publishing checklist
+- `results/advanced_experiment_summary.json` and the `results/` directory for the measured experiment outputs
+
 ## Problem Statement
 
 Traditional IDS engines are strong for deterministic known signatures, but they do not generalize well when traffic distributions shift or when attacks do not match existing rules. Static learned models also degrade when the deployment stream moves away from the source-domain training distribution. This project studies whether a reproducible online adaptation layer can recover part of that loss while keeping the system practical to deploy.
@@ -364,11 +374,19 @@ This repository includes:
 - `Dockerfile`
 - `docker/Dockerfile`
 - `run_training.sh`
+- `paper/build.sh`
 - `paper/ieee_paper.tex`
 - `research_paper.pdf`
 - `CITATION.cff`
+- `RELEASE.md`
 
 Raw data is kept under `dataset/raw/` and can stay out of version control, while the merged experiment assets and notebooks remain reproducible from the scripts in `training/` and `evaluation/`.
+
+To rebuild the paper and refresh the root-level PDF mirror:
+
+```bash
+bash paper/build.sh
+```
 
 ## Applications
 
@@ -387,6 +405,7 @@ ai-network-threat-detection/
 ├── models/
 ├── notebooks/
 ├── paper/
+├── RELEASE.md
 ├── results/
 ├── src/
 ├── training/
