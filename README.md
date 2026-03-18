@@ -252,6 +252,19 @@ Artifacts:
 - The second external `CSE-CIC-IDS2018` evaluation shows that source-only learned transfer can still collapse on newer corpora.
 - Cross-dataset generalization is still difficult, but the adaptation layer recovers part of that gap.
 
+### Positioning Against Recent Work
+
+The repo now positions itself explicitly against recent primary-source IDS papers:
+
+| Study | Year | Setting | Reported Result |
+| --- | --- | --- | --- |
+| Yan et al. | 2025 | `UNSW-NB15` within-dataset Transformer | `89.00%` `F1` |
+| Xin and Xu | 2025 | `NSL-KDD -> UNSW-NB15` cross-dataset Transformer-IDS | `55.00%` `F1` |
+| Wang et al. (`BS-GAT`) | 2025 | edge/IoT graph-based binary IDS | `>99%` binary `F1` |
+| This work | 2026 | `UNSW+NSL -> full CICIDS2017` drift-adaptive transfer | `68.69%` weighted `F1` |
+
+This is not meant as a forced apples-to-apples leaderboard because the datasets and protocols differ. The point is that this repo now clearly states where it sits relative to recent Transformer and graph-based IDS research while offering broader external-transfer, streaming, and detector-ablation coverage.
+
 ## Comparison with Traditional IDS
 
 This repository includes a quantitative rule-based baseline instead of a purely qualitative discussion.
@@ -286,6 +299,14 @@ The paper now includes a deployment architecture figure at `paper/deployment_arc
 - canonical 41-feature extraction
 - low-latency `Drift-Adaptive Hybrid` inference
 - alert handoff to `SIEM / SOC`
+
+## Future Work
+
+The paper now ends with an explicit future-work section. The next research directions are:
+
+- `continual learning` with delayed labels so the controller can refresh model parameters, not just reweight them
+- `RL / bandit-based adaptation` to optimize the precision-recall-latency tradeoff online
+- `multi-domain training` across enterprise, cloud, and IoT corpora, potentially with graph-based side information
 
 ## Demo
 
