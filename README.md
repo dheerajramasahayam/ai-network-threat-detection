@@ -95,6 +95,7 @@ python3 evaluation/run_cse_cic_ids2018_transfer_evaluation.py
 python3 evaluation/run_drift_detector_study.py
 python3 evaluation/run_failure_case_analysis.py
 python3 evaluation/realtime_streaming_evaluation.py --source file --chunksize 100000 --max-chunks 5
+python3 evaluation/run_realtime_case_study.py
 ```
 
 The full scripted benchmark trains all base detectors and evaluates:
@@ -108,6 +109,7 @@ The full scripted benchmark trains all base detectors and evaluates:
 7. latency-under-load and explainability-ablation artifacts
 8. family-level failure analysis on the dominant external attack types
 9. real-time streaming evaluation with drift timeline output
+10. packet-capture replay case study from a local real-time trace
 
 For streaming-style ingestion from Kafka:
 
@@ -230,6 +232,40 @@ Artifacts:
 
 - `results/transfer_unsw_nsl_to_cicids_failure_case_analysis.md`
 - `results/transfer_unsw_nsl_to_cicids_failure_case_analysis.png`
+
+### Real-World Packet Replay Case Study
+
+The repo now includes a replayed packet-capture validation using the local pair:
+
+- `dataset/raw/new_2026/realtime_ids/RTN_traffic_dataset.csv`
+- `dataset/raw/new_2026/realtime_ids/RealTimeNetworkTrafficCapture.pcapng`
+
+The runner aggregates the packet trace into one-second bidirectional flow windows and replays them through the transfer-trained adaptive hybrid:
+
+```bash
+python3 evaluation/run_realtime_case_study.py
+```
+
+Verified case-study results:
+
+- `221,253` packet rows replayed
+- `201` one-second bidirectional flow windows
+- `10` seconds benign warm-up, `35` seconds attack, `10` seconds benign cool-down
+- dominant attack path: `192.168.76.9 -> 192.168.12.56:3000/UDP`
+- hybrid detection delay: `0` seconds
+- dominant attack-flow probability at onset: `0.5382`
+- dominant attack-flow probability during attack: mean `0.5596`, range `[0.5382, 0.5703]`
+- `Drift-Adaptive Hybrid` flow-window weighted `F1`: `98.05%`
+- `Signature IDS` flow-window weighted `F1`: `5.16%`
+
+This is the most operational artifact in the repo because it starts from packet-level evidence rather than a pre-engineered benchmark table and shows the controller reacting to a real replayed attack episode.
+
+Artifacts:
+
+- `results/realtime_service_case_study.md`
+- `results/realtime_service_case_study_timeline.csv`
+- `results/realtime_service_case_study.png`
+- `results/realtime_service_case_study.json`
 
 ### Real-Time Streaming Evaluation
 

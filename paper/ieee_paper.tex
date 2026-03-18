@@ -24,7 +24,7 @@ Durham, North Carolina, USA
 \maketitle
 
 \begin{abstract}
-Enterprise intrusion detection remains a moving target because traditional rule-based systems are fast but narrow, while learned detectors often report strong in-dataset performance without demonstrating how they adapt to live distribution shift. This paper presents a reproducible benchmark over four evaluation settings: the full official UNSW-NB15 split, the full official NSL-KDD split, the full external CICIDS2017 corpus, and a cleaned CSE-CIC-IDS2018 external corpus. A transparent flow-signature IDS baseline is compared against Random Forest, LSTM, Transformer, a static Drift-Aware Hybrid, and an online Drift-Adaptive Hybrid controller that reweights the ensemble under detected shift. On UNSW-NB15, the static Drift-Aware Hybrid achieves the strongest weighted F1 score of 90.72\%, slightly above Random Forest at 90.65\%. On NSL-KDD, LSTM achieves the best weighted F1 score of 81.01\%. Under cross-dataset transfer into the full CICIDS2017 corpus, LSTM remains best overall with a weighted F1 score of 71.53\%, but the online Drift-Adaptive Hybrid improves the static hybrid from 61.35\% to 68.69\% without retraining the base detectors. A formal drift-detector study comparing Isolation Forest, ADWIN, DDM, and Page-Hinkley finds that Isolation Forest is strongest in this benchmark, reaching 70.58\% post-adaptation weighted F1 with zero source-domain false positives. On CSE-CIC-IDS2018, the flow-signature baseline is unexpectedly strongest at 66.37\% weighted F1, exposing the limits of source-only learned transfer. Family-level failure analysis on CICIDS2017 further shows that the adaptive hybrid partially recovers FTP-Patator traffic with F1 0.1793 where the source-trained LSTM collapses. The repository also reports latency-under-load, real-time streaming traces, deployment architecture, and explainability-by-ablation artifacts, making the benchmark useful both as an academic paper and as an open-source systems study.
+Enterprise intrusion detection remains a moving target because traditional rule-based systems are fast but narrow, while learned detectors often report strong in-dataset performance without demonstrating how they adapt to live distribution shift. This paper presents a reproducible benchmark over four evaluation settings: the full official UNSW-NB15 split, the full official NSL-KDD split, the full external CICIDS2017 corpus, and a cleaned CSE-CIC-IDS2018 external corpus. A transparent flow-signature IDS baseline is compared against Random Forest, LSTM, Transformer, a static Drift-Aware Hybrid, and an online Drift-Adaptive Hybrid controller that reweights the ensemble under detected shift. On UNSW-NB15, the static Drift-Aware Hybrid achieves the strongest weighted F1 score of 90.72\%, slightly above Random Forest at 90.65\%. On NSL-KDD, LSTM achieves the best weighted F1 score of 81.01\%. Under cross-dataset transfer into the full CICIDS2017 corpus, LSTM remains best overall with a weighted F1 score of 71.53\%, but the online Drift-Adaptive Hybrid improves the static hybrid from 61.35\% to 68.69\% without retraining the base detectors. A formal drift-detector study comparing Isolation Forest, ADWIN, DDM, and Page-Hinkley finds that Isolation Forest is strongest in this benchmark, reaching 70.58\% post-adaptation weighted F1 with zero source-domain false positives. On CSE-CIC-IDS2018, the flow-signature baseline is unexpectedly strongest at 66.37\% weighted F1, exposing the limits of source-only learned transfer. Family-level failure analysis on CICIDS2017 further shows that the adaptive hybrid partially recovers FTP-Patator traffic with F1 0.1793 where the source-trained LSTM collapses. Finally, a replayed packet-capture case study over 221{,}253 real packets from a local service attack trace detects the attack immediately at onset and achieves 98.05\% weighted F1 on one-second bidirectional flow windows. The repository also reports latency-under-load, real-time streaming traces, deployment architecture, and explainability-by-ablation artifacts, making the benchmark useful both as an academic paper and as an open-source systems study.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -44,7 +44,7 @@ The contributions of this paper are sevenfold:
 \item Full official-split evaluation on UNSW-NB15 and NSL-KDD, plus external cross-dataset transfer from UNSW-NB15 and NSL-KDD into both CICIDS2017 and CSE-CIC-IDS2018.
 \item A formal drift-detector comparison that evaluates Isolation Forest, ADWIN, DDM, and Page-Hinkley by detection delay, false positives, and post-adaptation IDS quality.
 \item A family-level failure analysis over the dominant CICIDS2017 attack types, showing where transfer fails and where adaptation still recovers signal.
-\item Deployment-oriented analysis through latency-under-load, real-time streaming evaluation, explainability-by-ablation, and a production deployment architecture tied to Kafka-style flow ingestion and SIEM/SOC handoff.
+\item Deployment-oriented analysis through latency-under-load, real-time streaming evaluation, a replayed packet-capture case study, explainability-by-ablation, and a production deployment architecture tied to Kafka-style flow ingestion and SIEM/SOC handoff.
 \end{itemize}
 
 \section{Related Work}
@@ -264,6 +264,29 @@ Table~\ref{tab:sota} places the current benchmark alongside representative recen
 
 The latency results still reveal a clear speed hierarchy. On UNSW-NB15 at batch size 1{,}024, the Signature IDS baseline exceeds 1.2 million flows per second, Random Forest reaches roughly 71 thousand flows per second, LSTM reaches about 13.4 thousand flows per second, Transformer reaches about 11.8 thousand flows per second, and the hybrid model reaches about 5.2 thousand flows per second. The full-corpus online adaptation study shows that deployment-time adaptation can recover 7.34 weighted F1 points over the static hybrid on the external stream without touching the already-trained base detectors, while increasing average hybrid latency from 0.1240 to 0.2630 ms/flow. In a separate file-backed real-time emulation over 29 sequential windows, the same online controller preserved its aggregate weighted F1 of 68.69\%, achieved a mean window F1 of 73.80\%, and operated with a mean adaptation alpha of 0.9985, indicating that the external stream almost immediately pushes the model into its stressed regime. The tradeoff is therefore favorable for enterprise settings that can tolerate sub-millisecond model inference in exchange for better robustness under shift.
 
+\begin{table}[t]
+\caption{Packet-capture replay case study from the local real-time trace.}
+\label{tab:case}
+\centering
+\small
+\begin{tabular}{@{}lr@{}}
+\toprule
+Quantity & Value \\
+\midrule
+Capture packets & 221{,}253 \\
+Flow windows & 201 \\
+Benign warm-up & 10 s \\
+Attack duration & 35 s \\
+Hybrid delay & 0 s \\
+Dominant attack flow & UDP/3000 \\
+Hybrid F1 & 98.05\% \\
+Signature IDS F1 & 5.16\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:case} adds the requested real-world-style validation. The case study replays a local packet capture containing benign warm-up traffic, a sustained internal service attack from 192.168.76.9 to 192.168.12.56:3000/UDP, and benign cool-down traffic. The packet stream is aggregated into one-second bidirectional flow windows and passed through the transfer-trained adaptive controller. The hybrid detects the dominant attack flow immediately at onset with attack probability 0.5382 and maintains that flow between 0.5382 and 0.5703 throughout the attack period. On these replay windows, the hybrid reaches 98.05\% weighted F1, while the deterministic signature baseline overfires on benign windows despite assigning high confidence to the attack flow itself.
+
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{../results/official_unsw_roc_curve.png}
@@ -285,6 +308,13 @@ The latency results still reveal a clear speed hierarchy. On UNSW-NB15 at batch 
 \label{fig:adaptation}
 \end{figure}
 
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{../results/realtime_service_case_study.png}
+\caption{Packet-capture replay case study with benign warm-up, sustained UDP/3000 attack traffic, and benign cool-down.}
+\label{fig:case}
+\end{figure}
+
 \section{Discussion}
 Four findings stand out. First, the official split results still support the core premise of the paper: learned detectors substantially outperform the transparent rule baseline on UNSW-NB15 and NSL-KDD, and the static hybrid reaches 90.72\% weighted F1 on UNSW-NB15 under a constrained unified feature schema. That slightly exceeds the 89.00\% UNSW-NB15 F1 reported by Yan et al.\ for a specialized recent Transformer \cite{yan2025transformer}, while this repository also adds rule-based comparators, external transfer, and deployment analysis.
 
@@ -293,6 +323,8 @@ Second, the formal detector comparison strengthens the adaptation claim. Isolati
 Third, the new CSE-CIC-IDS2018 evaluation reveals a sharper limitation than the CICIDS2017 result alone would suggest. The fact that the Signature IDS baseline is strongest on that corpus indicates that some external distributions remain easier to capture through explicit rules than through source-trained learned models. In other words, lightweight drift adaptation helps, but it is not a substitute for broader source coverage or continual learning when the target domain changes substantially.
 
 Fourth, the failure analysis shows where the system still breaks. The adaptive hybrid can partially recover brute-force traffic such as FTP-Patator, but it remains near zero on large volumetric DoS families under the family-versus-benign protocol. This suggests that the current controller helps when cross-dataset transfer preserves compact count and flag signatures, but not when the dominant attack family's geometry changes too far from the source-domain feature manifold.
+
+The packet-capture replay adds a more operationally grounded perspective. Unlike the benchmark corpora, it starts from packet-level evidence and reconstructs one-second flow windows from a real recorded trace. The immediate zero-delay detection in that setting is encouraging because it shows the controller can still behave sensibly outside the public benchmark files. At the same time, the strong case-study performance should not be over-generalized: the replayed attack is a concentrated single-service event, not a full enterprise week of traffic.
 
 Explainability-by-ablation still supports the feature engineering design. On the official UNSW-NB15 study, replacing the top Random Forest importance features with benign-reference values causes a weighted F1 drop of 0.1284 on a sampled evaluation set, while replacing random features causes only a 0.0165 drop. This gap suggests that the most important canonical features are not arbitrary proxies.
 
